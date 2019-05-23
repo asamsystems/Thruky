@@ -1,0 +1,2 @@
+# Thruk
+Themes and plugins
