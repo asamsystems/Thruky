@@ -1,6 +1,0 @@
-#!/bin/bash -
-for f in *.tt; do
-  if [ 
-  /bin/cp $f ${f}.00
-  echo "File -> $f"
-done
