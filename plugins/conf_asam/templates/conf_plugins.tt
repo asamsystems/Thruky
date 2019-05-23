@@ -1,0 +1,101 @@
+﻿[% WRAPPER _conf_frame.tt %]
+[% first_enabled  = 1 %]
+[% first_disabled = 1 %]
+
+<div align="center">
+<form action="conf.cgi" method="POST">
+<input type="hidden" name="sub" value="plugins">
+<input type="hidden" name="action" value="save">
+<input type="hidden" name="token" value="[% get_user_token(c) %]">
+[% IF readonly %]
+<div class="alert"><b>Readonly:</b> Make sure the config file is writable!</div>
+[% ELSE %]
+<input type="submit" name="send" value="Save Changes" style="width:120px" class="conf_button"><br>
+Don't forget to restart Thruk after changing plugins.
+[% END %]
+<table class=table style=max-width:1000px;><tr><td valign="top">
+  <table border="0" class='table-condensed data conftoolusers' style="width:100%;">
+    <tr>
+      <th colspan=5 class='data conftoolheader' style="text-align:center">Enabled Plugins</th>
+    </tr>
+    [% FOREACH name = plugins.keys.sort %]
+    [% plugin = plugins.$name %]
+    [% IF plugin.enabled == 0 %][% NEXT %][% END %]
+    [% IF first_enabled == 0 %]
+    <tr>
+      <td colspan=4><hr></td>
+    </tr>
+    [% END %]
+    [% first_enabled = 0 %]
+    <tr>
+      <td class='h5'>[% name %]</td>
+      <td class='dataVal' style=width:50%>
+        <!-- div class="radioset">
+            <input type="radio" value="1" id="[% plugin.dir %]_on"  name="plugin.[% plugin.dir %]"[% IF plugin.enabled == 1 %] checked="checked"[% END %][% IF readonly %] disabled[% END %] /><label for="[% plugin.dir %]_on">On</label>
+            <input type="radio" value="0" id="[% plugin.dir %]_off" name="plugin.[% plugin.dir %]"[% IF plugin.enabled == 0 %] checked="checked"[% END %][% IF readonly %] disabled[% END %][% IF plugin.dir == 'conf' %] onclick="alert('Warning: Disabling this config tool also disables this plugin manager so you cannot enable it via gui again. It is still possible to create the symlink in your plugins-enabled folder by hand.')"[% END %] /><label for="[% plugin.dir %]_off">Off</label>
+        </div -->
+        
+  <div class="checkbox">
+    <label class="btn btn-sm btn-default">&nbsp;&nbsp;
+      <input type="checkbox" value="1" style=margin-top:2px; id="[% plugin.dir %]_on"  name="plugin.[% plugin.dir %]"[% IF plugin.enabled == 1 %] checked="checked"[% END %][% IF readonly %] disabled[% END %][% IF plugin.dir == 'conf_asam' %][% IF plugin.enabled == 1 %] onclick="alert('Warning: Make sure the `conf` plugin is checked if you want to disable this plugin. - Disabling both plugins also disables this plugin manager so you cannot enable it via gui again. It is still possible to create the symlink in your plugins-enabled folder by hand.')"[% END %][% END %]>
+      &nbsp;Enabled
+    </label>
+  </div>
+      </td>
+    </tr>
+
+    <tr style="height:160px;">
+      <td ><img src="conf.cgi?sub=plugins&amp;action=preview&amp;pic=[% plugin.dir %]" alt="[% name %]"></td>
+      <td class='dataVal plugin_description'>[% plugin.description %][% IF plugin.url %]<br><br><a href="[% plugin.url %]">view plugin page</a>[% END %]</td>
+    </tr>
+    [% END %]
+  </table>
+</td><td valign="top">
+  <table border="0" class='table-condensed data conftoolusers' style="width:100%;">
+    <tr>
+      <th colspan=5 class='data conftoolheader' style="text-align:center">Available Plugins</th>
+    </tr>
+    [% FOREACH name = plugins.keys.sort %]
+    [% plugin = plugins.$name %]
+    [% IF plugin.enabled == 1 %][% NEXT %][% END %]
+    [% IF first_disabled == 0 %]
+    <tr>
+      <td colspan=4><hr></td>
+    </tr>
+    [% END %]
+    [% first_disabled = 0 %]
+    <tr>
+      <td class='h5'>[% name %]</td>
+      <td class='dataVal' style=width:50%>
+        <!-- div class="radioset">
+            <input type="radio" value="1" id="[% plugin.dir %]_on"  name="plugin.[% plugin.dir %]"[% IF plugin.enabled == 1 %] checked="checked"[% END %][% IF readonly %] disabled[% END %] /><label for="[% plugin.dir %]_on">On</label>
+            <input type="radio" value="0" id="[% plugin.dir %]_off" name="plugin.[% plugin.dir %]"[% IF plugin.enabled == 0 %] checked="checked"[% END %][% IF readonly %] disabled[% END %] /><label for="[% plugin.dir %]_off">Off</label>
+        </div -->
+        
+  <div class="checkbox">
+    <label class="btn btn-sm btn-default">&nbsp;&nbsp;
+      <input type="checkbox" value="1" style=margin-top:2px; id="[% plugin.dir %]_on"  name="plugin.[% plugin.dir %]"[% IF plugin.enabled == 1 %] checked="checked"[% END %][% IF readonly %] disabled[% END %][% IF plugin.dir == 'conf_asam' %][% IF plugin.enabled == 1 %] onclick="alert('Warning: Make sure the `conf` plugin is checked if you want to disable this plugin. - Disabling both plugins also disables this plugin manager so you cannot enable it via gui again. It is still possible to create the symlink in your plugins-enabled folder by hand.')"[% END %][% END %]>
+      &nbsp;Enabled
+    </label>
+  </div>
+        
+      </td>
+    </tr>
+
+    <tr style="height:160px;">
+      <td ><img src="conf.cgi?sub=plugins&amp;action=preview&amp;pic=[% plugin.dir %]" alt="[% name %]"></td>
+      <td class='dataVal plugin_description'>[% plugin.description %]</td>
+
+    </tr>
+    [% END %]
+  </table>
+</td></tr></table>
+<br>
+[% IF !readonly %]
+<input type="submit" name="send" value="Save Changes" style="width:120px" class="conf_button"><br>
+Don't forget to restart Thruk after changing plugins.
+[% END %]
+</form>
+</div>
+
+[% END %]

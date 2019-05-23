@@ -1,0 +1,92 @@
+﻿[% WRAPPER _conf_frame.tt %]
+<script src="[% url_prefix %]plugins/conf_asam/linedtextarea/jquery-linedtextarea.js" type="text/javascript" charset="utf-8"></script>
+<form action="conf.cgi" method="POST" id="saveform">
+<input type="hidden" name="sub" value="objects">
+<input type="hidden" name="action" value="savefile">
+<input type="hidden" name="file" value="[% file_link %]">
+<input type="hidden" name="content" value="" id='filecontent'>
+<input type="hidden" name="token" value="[% get_user_token(c) %]">
+[% IF show_object && back == "edit" %]
+<input type="hidden" name="data.id" value="[% object.get_id() %]">
+[% END %]
+<input type="hidden" name="line" value="" id="fileline">
+[% IF c.req.parameters.exists('backlink') %]
+<input type="hidden" name="backlink" value="[% c.req.parameters.backlink %]">
+[% END %]
+<div id="editor_pane" style="margin-left: 10px; margin-right: 10px;">
+<table border="0" class='data conftoolobj' style="width: 100%;">
+  <tr>
+    <th class='data' width="5%" align="left"><a href='[% IF c.req.parameters.exists('backlink') %][% c.req.parameters.backlink %][% ELSIF show_object && back == "edit" %]conf.cgi?sub=objects&amp;data.id=[% object.get_id() %][% ELSE %]conf.cgi?sub=objects&amp;action=browser#[% file_link %][% END %]' onclick="return confirm_discard_changes()"><img src='[% url_prefix %]themes/[% theme %]/images/arrow_left.png' border="0" alt='discard changes' title='discard changes' width="16" height="16" style="vertical-align: middle;"> back</a></th>
+    <th class='data' width="90%"><span  style="font-size: larger;">[% IF file_name.substr(0,1) != '/' %]/[% END %][% file_name %]</span>[% IF file.readonly %]<span style="color: #EB6900"> (read-only)</span>[% END %]</th>
+    <th class='data' width="5%" align="right">[% UNLESS file.readonly %]<a href='#' onClick="save_file(); return false;"><img src='[% url_prefix %]themes/[% theme %]/images/disk.png' border="0" alt='save changes' title='save changes' width="16" height="16" style="vertical-align: middle;"> save</a>[% END %]</th>
+  </tr>
+  <tr>
+    <td class="dataVar" colspan=3>
+        <textarea id="texteditor" name="texteditor" cols=40 wrap="off"[% IF file.readonly %] readonly[% END %] style="line-height: 15px; white-space: pre;">[% escape_html(file_content) %]</textarea>
+        <script type="text/javascript">
+        var editor;
+        var original_value;
+        window.onload = function() {
+            editor = document.getElementById('texteditor');
+
+            // save original value decoded
+            original_value = editor.value;
+
+            var w = editor.offsetWidth - 10, h = jQuery(window).height() - jQuery('#texteditor').offset().top - 30;
+            editor.style.width  = w + 'px';
+            editor.style.height = h + 'px';
+
+            jQuery('#texteditor').css('width',  w + 'px')
+                                 .css('height', h + 'px');
+
+            jQuery("#texteditor").linedtextarea(
+               {selectedLine: [% line %]}
+            );
+            set_current_line([% line %]);
+        };
+
+        /* intercept when there are unsaved changes */
+        function confirm_discard_changes() {
+            if(has_changed()) {
+                return confirm("File has been changed. Really discard changes?");
+            }
+            return true;
+        }
+
+        function get_current_line() {
+            return(editor.value.substr(0, getCaret(editor)).split("\n").length);
+        }
+
+        function set_current_line(line) {
+            var pos = editor.value.split("\n").slice(0, line-1).join("\n").length + 1;
+            editor.focus();
+            editor.selectionStart = pos;
+            editor.selectionEnd   = pos;
+        }
+
+        function has_changed() {
+            if(editor.value != original_value) {
+                return true;
+            }
+            return false;
+        }
+
+        function save_file() {
+            form = document.getElementById('saveform');
+            document.getElementById('filecontent').value = editor.value;
+            [%+ IF show_object && back == "edit" +%]
+            document.getElementById('fileline').value    = get_current_line();
+            [%+ END +%]
+
+            form.submit();
+        }
+        </script>
+        <!--[IF IE]>
+        <![ENDIF]-->
+    </td>
+  </tr>
+</table>
+</div>
+</form>
+
+[% END %]

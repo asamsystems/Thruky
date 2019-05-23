@@ -1,0 +1,5 @@
+conf_asam (aka 'Config Tool2') plugin is the same as the original conf (aka 'Config Tool') but with a Bootstrap 3 wrapping.
+<br>
+<b>Word of caution</b>: enabling 'conf' and 'conf_asam' plugins at the same time may lead to unexpected behaviour.
+
+Url: conf.cgi
