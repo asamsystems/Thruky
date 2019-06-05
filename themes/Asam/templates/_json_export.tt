@@ -1,0 +1,1 @@
+﻿<a href="[% uri_with(c, 'view_mode' => 'json') %]" target="_blank"><button class="[% IF hidicon %] hidden [% END %]thruk_btn small secondary json_export" title="Export to JSON"></button></a>&nbsp;
