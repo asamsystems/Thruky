@@ -1,0 +1,237 @@
+﻿[% PROCESS _header.tt %]
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h5 class="panel-title text-center" >[% infoBoxTitle %]</h5>
+      </div>
+    <div class="panel-body">
+      <div class=row>
+        <div class=col-xs-4>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h5 class="panel-title text-center">Current State</h5>
+            </div>
+            <div class="panel-body">
+            [% PROCESS _infobox.tt %]
+            </div>
+          </div>
+          </div>
+        <div class=col-xs-5>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h5 class="panel-title text-center">Filter</h5>
+            </div>
+            <div class="panel-body">
+            <table class=table>
+            <tr>
+            <td style="vertical-align: top;">
+          <form method="get" action="config.cgi">
+            <table border="0">
+              <tr>
+                <td align="left" class='reportSelectSubTitle'>Object Type:</td>
+              </tr>
+              <tr>
+                <td align="left" class='reportSelectItem'>
+                  <select name='type'>
+                    <option value='hosts'[%               IF type == 'hosts'               %] selected [% END %]>Hosts</option>
+                    <!--<option value='hostdependencies'[%    IF type == 'hostdependencies'    %] selected [% END %]>Host Dependencies</option>-->
+                    <!--<option value='hostescalations'[%     IF type == 'hostescalations'     %] selected [% END %]>Host Escalations</option>-->
+                    <option value='hostgroups'[%          IF type == 'hostgroups'          %] selected [% END %]>Host Groups</option>
+                    <option value='services'[%            IF type == 'services'            %] selected [% END %]>Services</option>
+                    <option value='servicegroups'[%       IF type == 'servicegroups'       %] selected [% END %]>Service Groups</option>
+                    <!--<option value='servicedependencies'[% IF type == 'servicedependencies' %] selected [% END %]>Service Dependencies</option>-->
+                    <!--<option value='serviceescalations'[%  IF type == 'serviceescalations'  %] selected [% END %]>Service Escalations</option>-->
+                    <option value='contacts'[%            IF type == 'contacts'            %] selected [% END %]>Contacts</option>
+                    <option value='contactgroups'[%       IF type == 'contactgroups'       %] selected [% END %]>Contact Groups</option>
+                    <option value='timeperiods'[%         IF type == 'timeperiods'         %] selected [% END %]>Timeperiods</option>
+                    <option value='commands'[%            IF type == 'commands'            %] selected [% END %]>Commands</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class='reportSelectItem'>
+                  <input type='submit' value='Update'>
+                </td>
+              </tr>
+            </table>
+          </form>
+          </td>
+          <td>
+          <table border="0">
+            <tr>
+              <td align="left" class='reportSelectSubTitle'>Columns:</td>
+            </tr>
+            <tr>
+             <td>
+                <select style="height: 120px;" id='columns_sel' multiple='multiple' onchange="toggleVis(this)">
+                </select>
+              </td>
+           </tr>
+         </table>
+       </td>
+      </tr>
+    </table>          
+ 
+            
+     </div>
+     </div>
+     </div>
+     </div>
+     </div>
+     </div>
+
+    <!-- table border="0" width="100%" cellspacing="0" cellpadding="0" class="infoboxrow">
+      <tr>
+        <td align="left" valign="bottom" width="20%">
+          [%# PROCESS _infobox.tt %]
+          <br>
+          <br>
+          <br>
+          [%# PROCESS _table_search_field.tt ids=["configtable"] %]
+        </td>
+        <td align="center" valign="bottom" width="60%">
+          <div align="center" class='dataTitle'>[% dataTitle %]</div>
+          <br>
+        </td>
+        <td align="right" valign="bottom" width="20%">
+          <form method="get" action="config.cgi">
+            <table border="0">
+              <tr>
+                <td align="left" class='reportSelectSubTitle'>Object Type:</td>
+              </tr>
+              <tr>
+                <td align="left" class='reportSelectItem'>
+                  <select name='type'>
+                    <option value='hosts'[%               IF type == 'hosts'               %] selected [% END %]>Hosts</option -->
+                    <!--<option value='hostdependencies'[%    IF type == 'hostdependencies'    %] selected [% END %]>Host Dependencies</option>-->
+                    <!--<option value='hostescalations'[%     IF type == 'hostescalations'     %] selected [% END %]>Host Escalations</option>-->
+<!--                     <option value='hostgroups'[%          IF type == 'hostgroups'          %] selected [% END %]>Host Groups</option>
+                    <option value='services'[%            IF type == 'services'            %] selected [% END %]>Services</option>
+                    <option value='servicegroups'[%       IF type == 'servicegroups'       %] selected [% END %]>Service Groups</option>
+ -->                    <!--<option value='servicedependencies'[% IF type == 'servicedependencies' %] selected [% END %]>Service Dependencies</option>-->
+                    <!--<option value='serviceescalations'[%  IF type == 'serviceescalations'  %] selected [% END %]>Service Escalations</option>-->
+ <!--                    <option value='contacts'[%            IF type == 'contacts'            %] selected [% END %]>Contacts</option>
+                    <option value='contactgroups'[%       IF type == 'contactgroups'       %] selected [% END %]>Contact Groups</option>
+                    <option value='timeperiods'[%         IF type == 'timeperiods'         %] selected [% END %]>Timeperiods</option>
+                    <option value='commands'[%            IF type == 'commands'            %] selected [% END %]>Commands</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class='reportSelectItem'>
+                  <input type='submit' value='Update'>
+                </td>
+              </tr>
+            </table>
+          </form>
+        </td>
+        <td>
+          <table border="0">
+            <tr>
+              <td align="left" class='reportSelectSubTitle'>Columns:</td>
+            </tr>
+            <tr>
+             <td>
+                <select style="height: 120px;" id='columns_sel' multiple='multiple' onchange="toggleVis(this)">
+                </select>
+              </td>
+           </tr>
+         </table>
+       </td>
+      </tr>
+    </table>
+ -->
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h5 class="panel-title text-center" >[% infoBoxTitle %]</h5>
+      </div>
+    <div class="panel-body"> 
+ 
+<div class=row>
+        <div class=col-xs-4>
+            Filter&nbsp;
+          [% PROCESS _table_search_field.tt ids=["configtable"] %]
+        </div>
+        <div class=col-xs-4>    
+    <div align="center">[% PROCESS _pager.tt %]</div>
+    </div>
+</div>
+<p> </p>
+    <div align="center">[% content %]</div>
+  <p> </p>
+    <div align="center">[% PROCESS _pager.tt %]</div>
+</div>
+</div>    
+    
+    <div class='itemTotalsTitle'>[% IF data.size %][% data.size %] of [% pager.total_entries %][% ELSE %]0[% END %] Matching Entries Displayed</div>
+
+    <script type="text/javascript">
+    <!--
+
+var column_select = document.getElementById("columns_sel");
+var columns = new Array();
+jQuery('TH.data').each(function(i, col) {
+    if(i != 0 || col.innerHTML != 'Service') {
+      columns.push(col.innerHTML);
+    }
+});
+add_options(column_select, columns);
+jQuery("#columns_sel option").prop('selected',true);
+
+// Set the default "show" mode to that specified by W3C DOM
+// compliant browsers
+
+var showMode = 'table-cell';
+
+// However, IE5 at least does not render table cells correctly
+// using the style 'table-cell', but does when the style 'block'
+// is used, so handle this
+
+if (document.all) showMode='block';
+
+// This is the function that actually does the manipulation
+function toggleVis(sel){
+    var table = jQuery('TABLE.data')[0];
+    lines = table.getElementsByTagName('tr');
+
+    for ( k = 0; k < lines.length; k++) {
+        // Headers
+        h = lines[k].getElementsByTagName('th');
+        if (h.length == 2 && k == 0) {
+          if(sel.options[1].selected && sel.options[2].selected) {
+            lines[0].style.display = "";
+          } else {
+            lines[0].style.display = "none";
+          }
+        }
+        if (h.length == sel.options.length) {
+            for (var i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].selected == true) {
+                    h[i].style.display = showMode;
+                }
+                else {
+                    h[i].style.display = 'none';
+                }
+           }
+        }
+
+        // Rows
+        c = lines[k].getElementsByTagName('td');
+        if (c.length == sel.options.length) {
+            for (var i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].selected == true) {
+                    c[i].style.display = showMode;
+                }
+                else {
+                    c[i].style.display = 'none';
+                }
+            }
+        }
+    }
+
+}
+    -->
+    </script>
+
+[% PROCESS _footer.tt %]

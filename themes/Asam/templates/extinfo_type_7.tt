@@ -1,0 +1,157 @@
+﻿[% USE date %]
+[% PROCESS _header.tt %]
+
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h5 class="panel-title text-center" >[% infoBoxTitle %]</h5>
+      </div>
+    <div class="panel-body">
+      <div class=row>
+        <div class=col-xs-4>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h5 class="panel-title text-center">Current State</h5>
+            </div>
+            <div class="panel-body">
+            [% PROCESS _infobox.tt %]
+            [% PROCESS _help.tt topic = "extinfo_7" %]
+            </div>
+          </div>
+          </div>
+          </div>
+          </div>
+          </div>
+
+
+<!-- table border="0" width="100%" cellspacing="0" cellpadding="0" class="infoboxrow">
+  <tr>
+    <td align="left" valign="top" width="33%">
+    [%# PROCESS _infobox.tt %]
+    [% IF c.config.use_feature_core_scheduling %]
+    <table border="1" cellpadding="0" cellspacing="0" class='linkBox'>
+      <tr>
+        <td class='linkBox'>
+          <a href="[% c.config.use_feature_core_scheduling %]?action=scheduling">Core Scheduling Graph</a><br>
+        </td>
+      </tr>
+    </table>
+    [% END %]
+    </td>
+    <td align="center" valign="middle" width="33%"></td>
+    <td align="right" valign="bottom" width="33%">
+      [% PROCESS _help.tt topic = "extinfo_7" %]
+    </td>
+  </tr>
+</table>
+<br -->
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h5 class="panel-title text-center" >Scheduling Queue</h5>
+      </div>
+    <div class="panel-body"
+
+<div class=row>  
+  <div class=col-xs-4>
+              [% IF c.config.use_feature_core_scheduling %]
+              <a class="btn btn-default btn-sm" role="button" href="[% c.config.use_feature_core_scheduling %]?action=scheduling">Show Core Scheduling Graph</a>
+            [% END %]
+  </div>            
+  <div class=col-xs-4>
+<div align="center" class='statusSort'>
+  Entries sorted by <b>[% sortkey %]</b>
+  [% IF order == 'ASC' %]
+  (ascending)
+  [% ELSE %]
+  (descending)
+  [% END %]
+<br>
+  [% PROCESS _pager.tt %]
+</div>
+</div>
+</div>
+
+    <div align="center">
+      <table border="0" class='table queue'>
+        <tr class='queue'>
+          <th class='queue'>Host&nbsp;<a href='[% uri_with(c, 'sorttype' => 1, 'sortoption' => 1) %]'><img src='[% url_prefix %]themes/[% theme %]/images/up.gif' border="0" alt='Sort by host name (ascending)' title='Sort by host name (ascending)'></a><a href='[% uri_with(c, 'sorttype' => 2, 'sortoption' => 1) %]'><img src='[% url_prefix %]themes/[% theme %]/images/down.gif' border="0" alt='Sort by host name (descending)' title='Sort by host name (descending)'></a></th>
+          <th class='queue'>Service&nbsp;<a href='[% uri_with(c, 'sorttype' => 1, 'sortoption' => 2) %]'><img src='[% url_prefix %]themes/[% theme %]/images/up.gif' border="0" alt='Sort by service name (ascending)' title='Sort by service name (ascending)'></a><a href='[% uri_with(c, 'sorttype' => 2, 'sortoption' => 2) %]'><img src='[% url_prefix %]themes/[% theme %]/images/down.gif' border="0" alt='Sort by service name (descending)' title='Sort by service name (descending)'></a></th>
+          <th class='queue'>Last Check&nbsp;<a href='[% uri_with(c, 'sorttype' => 1, 'sortoption' => 4) %]'><img src='[% url_prefix %]themes/[% theme %]/images/up.gif' border="0" alt='Sort by last check time (ascending)' title='Sort by last check time (ascending)'></a><a href='[% uri_with(c, 'sorttype' => 2, 'sortoption' => 4) %]'><img src='[% url_prefix %]themes/[% theme %]/images/down.gif' border="0" alt='Sort by last check time (descending)' title='Sort by last check time (descending)'></a></th>
+          <th class='queue'>Next Check&nbsp;<a href='[% uri_with(c, 'sorttype' => 1, 'sortoption' => 7) %]'><img src='[% url_prefix %]themes/[% theme %]/images/up.gif' border="0" alt='Sort by next check time (ascending)' title='Sort by next check time (ascending)'></a><a href='[% uri_with(c, 'sorttype' => 2, 'sortoption' => 7) %]'><img src='[% url_prefix %]themes/[% theme %]/images/down.gif' border="0" alt='Sort by next check time (descending)' title='Sort by next check time (descending)'></a></th>
+          <th class='queue'>Type</th>
+          <th class='queue'>Active Checks</th>
+          <th class='queue'>Actions</th>
+        </tr>
+        [%  FOREACH q = data %]
+        [% SET class = 'queueEven' IF loop.even %]
+        [% SET class = 'queueOdd'  IF loop.odd %]
+        <tr class='[% class %]'>
+
+          <td class='[% class %]'><a href="extinfo.cgi?type=1&amp;host=[% q.host_name | uri %]">[% q.host_name | html %]</a></td>
+
+          [% IF q.description %]
+          <td class='[% class %]'><a href="extinfo.cgi?type=2&amp;host=[% q.host_name | uri %]&amp;service=[% q.description | uri %]">[% q.description | html %]</a></td>
+          [% ELSE %]
+          <td class='[% class %]'></td>
+          [% END %]
+
+          <td class='[% class %]'>[% last_check(c, q.last_check) %]</td>
+          <td class='[% class %]'>[% date_format(c, q.next_check) %]</td>
+
+          [% IF q.check_options == 0 || q.check_options == '' %]
+          <td class='[% class %]'>Normal</td>
+          [% ELSIF q.check_options == 1 %]
+          <td class='[% class %]'>Forced</td>
+          [% ELSIF q.check_options == 2 %]
+          <td class='[% class %]'>Freshness</td>
+          [% ELSIF q.check_options == 4 %]
+          <td class='[% class %]'>Orphan</td>
+          [% END %]
+
+          [% IF q.active_checks_enabled %]
+          <td class='queueENABLED'>ENABLED</td>
+          [% ELSE %]
+          <td class='queueDISABLED'>DISABLED</td>
+          [% END %]
+
+          <td class='[% class %]'>
+          [% IF q.description %]
+            [% IF q.active_checks_enabled %]
+            [% UNLESS command_disabled(c, '6') %]
+            <a href="cmd.cgi?cmd_typ=6&amp;host=[% q.host_name | uri %]&amp;service=[% q.description | uri %]"><img src='[% url_prefix %]themes/[% theme %]/images/disabled.gif' border="0" alt='Disable Active Checks Of This Service' title='Disable Active Checks Of This Service' width="20" height="20"></a>
+            [% END %]
+            [% ELSE %]
+            [% UNLESS command_disabled(c, '5') %]
+            <a href="cmd.cgi?cmd_typ=5&amp;host=[% q.host_name | uri %]&amp;service=[% q.description | uri %]"><img src='[% url_prefix %]themes/[% theme %]/images/enabled.gif' border="0" alt='Enable Active Checks Of This Service' title='Enable Active Checks Of This Service' width="20" height="20"></a>
+            [% END %]
+            [% END %]
+            [% UNLESS command_disabled(c, '7') %]
+            <a href="cmd.cgi?cmd_typ=7&amp;host=[% q.host_name | uri %]&amp;service=[% q.description | uri %]&amp;force_check"><img src='[% url_prefix %]themes/[% theme %]/images/delay.gif' border="0" alt='Re-schedule This Service Check' title='Re-schedule This Service Check' width="20" height="20"></a>
+            [% END %]
+          [% ELSE %]
+            [% IF q.active_checks_enabled %]
+            [% UNLESS command_disabled(c, '4') %]
+            <a href="cmd.cgi?cmd_typ=4&amp;host=[% q.host_name | uri %]"><img src='[% url_prefix %]themes/[% theme %]/images/disabled.gif' border="0" alt='Disable Active Checks Of This Host' title='Disable Active Checks Of This Host' width="20" height="20"></a>
+            [% END %]
+            [% ELSE %]
+            [% UNLESS command_disabled(c, '47') %]
+            <a href="cmd.cgi?cmd_typ=47&amp;host=[% q.host_name | uri %]"><img src='[% url_prefix %]themes/[% theme %]/images/enabled.gif' border="0" alt='Enable Active Checks Of This Host' title='Enable Active Checks Of This Host' width="20" height="20"></a>
+            [% END %]
+            [% END %]
+            [% UNLESS command_disabled(c, '96') %]
+            <a href="cmd.cgi?cmd_typ=96&amp;host=[% q.host_name | uri %]&amp;force_check"><img src='[% url_prefix %]themes/[% theme %]/images/delay.gif' border="0" alt='Re-schedule This Host Check' title='Re-schedule This Host Check' width="20" height="20"></a>
+            [% END %]
+          [% END %]
+          </td>
+        </tr>
+        [%  END %]
+      </table>
+
+      <br>
+      [% PROCESS _pager.tt %]
+    </div>
+    </div>
+    </div>
+
+[% PROCESS _footer.tt %]

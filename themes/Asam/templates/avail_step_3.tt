@@ -1,0 +1,437 @@
+﻿[% USE date %]
+[% PROCESS _header.tt %]
+
+    <!-- table border="0" width="100%" cellspacing="0" cellpadding="0" class="infoboxrow">
+      <tr>
+        <td align="left" valign="top" width="33%">
+          [% PROCESS _infobox.tt %]
+        </td>
+        <td align="center" valign="top" width="33%"></td>
+
+        <td align="right" valign="bottom" width="33%">
+          [% PROCESS _help.tt topic = "avail" %]
+        </td>
+      </tr>
+    </table -->
+  
+              [% hidicon = 1 %] [%# hide filter, bookmark, etc icons on this page %]
+              [% PROCESS _add_bookmark.tt %]                 
+    
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h5 class="panel-title text-center" >[% infoBoxTitle %]</h5>
+      </div>
+    <div class="panel-body">
+      <div class=row>
+        <div class=col-xs-4>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h5 class="panel-title text-center">Current State</h5>
+            </div>
+            <div class="panel-body">
+            [% PROCESS _infobox.tt %]
+            </div>
+          </div>
+          
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h5 class="panel-title text-center">Other options</h5>
+            </div>
+            <div class="panel-body">            
+              <div >
+                  Bookmark report with selected options
+              </div>
+              <div class="dropdown">
+                <button style="width: 133px;" class="btn btn-default btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                  &nbsp;Bookmark&nbsp;
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                  <li><a href=# onclick="resetRefresh(); toggleElement('add_bookmark', undefined, true); refreshNavSections('bookmark_sections'); return false;">Add/edit bookmark</a></li>
+                </ul>
+              </div>
+              <hr>
+              [% IF c.config.exists('use_feature_reports') && c.config.use_feature_reports %]
+              <div>
+                Create report with selected options
+                <input name="email" value="Create E-Mail Report" onclick="window.location='reports2.cgi?action=edit&amp;report=new&amp;template=report_from_url.tt&amp;params.url='+encodeURIComponent(jQuery('#permalink').attr('href')); return false;" type="button">
+              </div>
+              [% END %]
+           </div>
+          </div>
+
+          
+          
+        </div>  
+
+        <div class=col-xs-8>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h5 class="panel-title text-center">Step 3: Select Report Options</h5>
+            </div>
+            <div class="panel-body">
+      <form method="get" action="avail.cgi" id="avail_form">
+        <input type='hidden' name='show_log_entries' value=''>
+        [% IF host %]<input type='hidden' name='host' value="[% host | html %]">[% END %]
+        [% IF hostgroup %]<input type='hidden' name='hostgroup' value="[% hostgroup | html %]">[% END %]
+        [% IF service %]<input type='hidden' name='service' value="[% service | html %]">[% END %]
+        [% IF servicegroup %]<input type='hidden' name='servicegroup' value="[% servicegroup | html %]">[% END %]
+        <table class=table border="0" cellpadding="5">
+          <tr>
+            <td valign="top" class='reportSelectSubTitle' align="right">Report Period:</td>
+            <td valign="top" align="left" class='optBoxItem'>
+              <select name='timeperiod' onchange="update_report_period_options()" id="report_timeperiod">
+                [% PROCESS _timeperiods_select_options.tt selected_timeperiod="" %]
+                <option value="custom">* CUSTOM REPORT PERIOD *</option>
+              </select>
+            </td>
+          </tr>
+          <tr class="custom_time">
+            <td valign="top" class='reportSelectSubTitle' colspan="2" align="center">If Custom Report Period...</td>
+          </tr>
+          <tr class="custom_time">
+            <td valign="top" class='reportSelectSubTitle' align="right">Start Date (Inclusive):</td>
+            <td align="left" valign="top" class='reportSelectItem'>
+              [% SET yesterday = date.now - 86400 %]
+              <select name='smon'>
+                <option value='1'[%  IF format_date(yesterday, '%m') == "01" %] selected[% END %]>January</option>
+                <option value='2'[%  IF format_date(yesterday, '%m') == "02" %] selected[% END %]>February</option>
+                <option value='3'[%  IF format_date(yesterday, '%m') == "03" %] selected[% END %]>March</option>
+                <option value='4'[%  IF format_date(yesterday, '%m') == "04" %] selected[% END %]>April</option>
+                <option value='5'[%  IF format_date(yesterday, '%m') == "05" %] selected[% END %]>May</option>
+                <option value='6'[%  IF format_date(yesterday, '%m') == "06" %] selected[% END %]>June</option>
+                <option value='7'[%  IF format_date(yesterday, '%m') == "07" %] selected[% END %]>July</option>
+                <option value='8'[%  IF format_date(yesterday, '%m') == "08" %] selected[% END %]>August</option>
+                <option value='9'[%  IF format_date(yesterday, '%m') == "09" %] selected[% END %]>September</option>
+                <option value='10'[% IF format_date(yesterday, '%m') == "10" %] selected[% END %]>October</option>
+                <option value='11'[% IF format_date(yesterday, '%m') == "11" %] selected[% END %]>November</option>
+                <option value='12'[% IF format_date(yesterday, '%m') == "12" %] selected[% END %]>December</option>
+              </select>
+              <input type='text' size='2' maxlength='2' name='sday' value="[% format_date(yesterday, '%d') %]">
+              <input type='text' size='4' maxlength='4' name='syear' value="[% format_date(yesterday, '%Y') %]">
+              <input type='hidden' name='shour' value='0'>
+              <input type='hidden' name='smin' value='0'>
+              <input type='hidden' name='ssec' value='0'>
+            </td>
+          </tr>
+          <tr class="custom_time">
+            <td valign="top" class='reportSelectSubTitle' align="right">End Date (Inclusive):</td>
+            <td align="left" valign="top" class='reportSelectItem'>
+              <select name='emon'>
+                <option value='1'[%  IF format_date(date.now, '%m') == "01" %] selected[% END %]>January</option>
+                <option value='2'[%  IF format_date(date.now, '%m') == "02" %] selected[% END %]>February</option>
+                <option value='3'[%  IF format_date(date.now, '%m') == "03" %] selected[% END %]>March</option>
+                <option value='4'[%  IF format_date(date.now, '%m') == "04" %] selected[% END %]>April</option>
+                <option value='5'[%  IF format_date(date.now, '%m') == "05" %] selected[% END %]>May</option>
+                <option value='6'[%  IF format_date(date.now, '%m') == "06" %] selected[% END %]>June</option>
+                <option value='7'[%  IF format_date(date.now, '%m') == "07" %] selected[% END %]>July</option>
+                <option value='8'[%  IF format_date(date.now, '%m') == "08" %] selected[% END %]>August</option>
+                <option value='9'[%  IF format_date(date.now, '%m') == "09" %] selected[% END %]>September</option>
+                <option value='10'[% IF format_date(date.now, '%m') == "10" %] selected[% END %]>October</option>
+                <option value='11'[% IF format_date(date.now, '%m') == "11" %] selected[% END %]>November</option>
+                <option value='12'[% IF format_date(date.now, '%m') == "12" %] selected[% END %]>December</option>
+              </select>
+              <input type='text' size='2' maxlength='2' name='eday' value="[% format_date(date.now, '%d') %]">
+              <input type='text' size='4' maxlength='4' name='eyear' value="[% format_date(date.now, '%Y') %]">
+              <input type='hidden' name='ehour' value='24'>
+              <input type='hidden' name='emin' value='0'>
+              <input type='hidden' name='esec' value='0'>
+            </td>
+          </tr>
+          <tr>
+            <td valign="top" class='reportSelectSubTitle' align="right">Report time Period:</td>
+            <td valign="top" align="left" class='optBoxItem'>
+              <select name='rpttimeperiod'>
+                <option value="">None</option>
+                [% FOREACH t = timeperiods %]
+                <option value="[% t.name | html %]">[% t.name | html %]</option>
+                [% END %]
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class='reportSelectSubTitle' align="right">Assume Initial States:</td>
+            <td class='reportSelectItem'>
+              <select name='assumeinitialstates'>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class='reportSelectSubTitle' align="right">Assume State Retention:</td>
+            <td class='reportSelectItem'>
+              <select name='assumestateretention'>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class='reportSelectSubTitle' align="right">Assume States During Program Downtime:</td>
+            <td class='reportSelectItem'>
+              <select name='assumestatesduringnotrunning'>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class='reportSelectSubTitle' align="right">Include Soft States:</td>
+            <td class='reportSelectItem'>
+              <select name='includesoftstates'>
+                <option value="yes">Yes</option>
+                <option value="no" selected>No</option>
+              </select>
+            </td>
+          </tr>
+          [% UNLESS service %]
+          <tr>
+            <td class='reportSelectSubTitle' align="right">First Assumed Host State:</td>
+            <td class='reportSelectItem'>
+              <select name='initialassumedhoststate'>
+                <option value=0>Unspecified</option>
+                <option value=-1>Current State</option>
+                <option value=3>Host Up</option>
+                <option value=4>Host Down</option>
+                <option value=5>Host Unreachable</option>
+              </select>
+            </td>
+          </tr>
+          [% END %]
+          <tr>
+            <td class='reportSelectSubTitle' align="right">First Assumed Service State:</td>
+            <td class='reportSelectItem'>
+              <select name='initialassumedservicestate'>
+                <option value="0">Unspecified</option>
+                <option value="-1">Current State</option>
+                <option value="6">Service Ok</option>
+                <option value="8">Service Warning</option>
+                <option value="7">Service Unknown</option>
+                <option value="9">Service Critical</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td valign="top" class='reportSelectSubTitle' align="right">Output Format:</td>
+            <td valign="top" class='reportSelectItem'>
+              <input type="radio" name="view_mode" value="html" checked>HTML
+              <input type="radio" name="view_mode" value="xls">XLS
+              <input type="radio" name="view_mode" value="csv">CSV
+              <input type="radio" name="view_mode" value="json">JSON
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2 align="center" class='dateSelectItem'><input type='submit' value='Create Availability Report!'></td>
+          </tr>
+        </table>
+      </form>
+            
+            
+            
+            </div>
+          </div>
+        </div>         
+      </div>
+      [% PROCESS _help.tt topic = "avail" %]
+    </div>
+    </div>
+    
+    <!-- div align="center" class='dateSelectTitle'>Step 3: Select Report Options</div>
+    <div align="center">
+      <form method="get" action="avail.cgi" id="avail_form">
+        <input type='hidden' name='show_log_entries' value=''>
+        [% IF host %]<input type='hidden' name='host' value="[% host | html %]">[% END %]
+        [% IF hostgroup %]<input type='hidden' name='hostgroup' value="[% hostgroup | html %]">[% END %]
+        [% IF service %]<input type='hidden' name='service' value="[% service | html %]">[% END %]
+        [% IF servicegroup %]<input type='hidden' name='servicegroup' value="[% servicegroup | html %]">[% END %]
+        <table border="0" cellpadding="5">
+          <tr>
+            <td valign="top" class='reportSelectSubTitle' align="right">Report Period:</td>
+            <td valign="top" align="left" class='optBoxItem'>
+              <select name='timeperiod' onchange="update_report_period_options()" id="report_timeperiod">
+                [% PROCESS _timeperiods_select_options.tt selected_timeperiod="" %]
+                <option value="custom">* CUSTOM REPORT PERIOD *</option>
+              </select>
+            </td>
+          </tr>
+          <tr class="custom_time">
+            <td valign="top" class='reportSelectSubTitle' colspan="2" align="center">If Custom Report Period...</td>
+          </tr>
+          <tr class="custom_time">
+            <td valign="top" class='reportSelectSubTitle' align="right">Start Date (Inclusive):</td>
+            <td align="left" valign="top" class='reportSelectItem'>
+              [% SET yesterday = date.now - 86400 %]
+              <select name='smon'>
+                <option value='1'[%  IF format_date(yesterday, '%m') == "01" %] selected[% END %]>January</option>
+                <option value='2'[%  IF format_date(yesterday, '%m') == "02" %] selected[% END %]>February</option>
+                <option value='3'[%  IF format_date(yesterday, '%m') == "03" %] selected[% END %]>March</option>
+                <option value='4'[%  IF format_date(yesterday, '%m') == "04" %] selected[% END %]>April</option>
+                <option value='5'[%  IF format_date(yesterday, '%m') == "05" %] selected[% END %]>May</option>
+                <option value='6'[%  IF format_date(yesterday, '%m') == "06" %] selected[% END %]>June</option>
+                <option value='7'[%  IF format_date(yesterday, '%m') == "07" %] selected[% END %]>July</option>
+                <option value='8'[%  IF format_date(yesterday, '%m') == "08" %] selected[% END %]>August</option>
+                <option value='9'[%  IF format_date(yesterday, '%m') == "09" %] selected[% END %]>September</option>
+                <option value='10'[% IF format_date(yesterday, '%m') == "10" %] selected[% END %]>October</option>
+                <option value='11'[% IF format_date(yesterday, '%m') == "11" %] selected[% END %]>November</option>
+                <option value='12'[% IF format_date(yesterday, '%m') == "12" %] selected[% END %]>December</option>
+              </select>
+              <input type='text' size='2' maxlength='2' name='sday' value="[% format_date(yesterday, '%d') %]">
+              <input type='text' size='4' maxlength='4' name='syear' value="[% format_date(yesterday, '%Y') %]">
+              <input type='hidden' name='shour' value='0'>
+              <input type='hidden' name='smin' value='0'>
+              <input type='hidden' name='ssec' value='0'>
+            </td>
+          </tr>
+          <tr class="custom_time">
+            <td valign="top" class='reportSelectSubTitle' align="right">End Date (Inclusive):</td>
+            <td align="left" valign="top" class='reportSelectItem'>
+              <select name='emon'>
+                <option value='1'[%  IF format_date(date.now, '%m') == "01" %] selected[% END %]>January</option>
+                <option value='2'[%  IF format_date(date.now, '%m') == "02" %] selected[% END %]>February</option>
+                <option value='3'[%  IF format_date(date.now, '%m') == "03" %] selected[% END %]>March</option>
+                <option value='4'[%  IF format_date(date.now, '%m') == "04" %] selected[% END %]>April</option>
+                <option value='5'[%  IF format_date(date.now, '%m') == "05" %] selected[% END %]>May</option>
+                <option value='6'[%  IF format_date(date.now, '%m') == "06" %] selected[% END %]>June</option>
+                <option value='7'[%  IF format_date(date.now, '%m') == "07" %] selected[% END %]>July</option>
+                <option value='8'[%  IF format_date(date.now, '%m') == "08" %] selected[% END %]>August</option>
+                <option value='9'[%  IF format_date(date.now, '%m') == "09" %] selected[% END %]>September</option>
+                <option value='10'[% IF format_date(date.now, '%m') == "10" %] selected[% END %]>October</option>
+                <option value='11'[% IF format_date(date.now, '%m') == "11" %] selected[% END %]>November</option>
+                <option value='12'[% IF format_date(date.now, '%m') == "12" %] selected[% END %]>December</option>
+              </select>
+              <input type='text' size='2' maxlength='2' name='eday' value="[% format_date(date.now, '%d') %]">
+              <input type='text' size='4' maxlength='4' name='eyear' value="[% format_date(date.now, '%Y') %]">
+              <input type='hidden' name='ehour' value='24'>
+              <input type='hidden' name='emin' value='0'>
+              <input type='hidden' name='esec' value='0'>
+            </td>
+          </tr>
+          <tr>
+            <td valign="top" class='reportSelectSubTitle' align="right">Report time Period:</td>
+            <td valign="top" align="left" class='optBoxItem'>
+              <select name='rpttimeperiod'>
+                <option value="">None</option>
+                [% FOREACH t = timeperiods %]
+                <option value="[% t.name | html %]">[% t.name | html %]</option>
+                [% END %]
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class='reportSelectSubTitle' align="right">Assume Initial States:</td>
+            <td class='reportSelectItem'>
+              <select name='assumeinitialstates'>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class='reportSelectSubTitle' align="right">Assume State Retention:</td>
+            <td class='reportSelectItem'>
+              <select name='assumestateretention'>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class='reportSelectSubTitle' align="right">Assume States During Program Downtime:</td>
+            <td class='reportSelectItem'>
+              <select name='assumestatesduringnotrunning'>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class='reportSelectSubTitle' align="right">Include Soft States:</td>
+            <td class='reportSelectItem'>
+              <select name='includesoftstates'>
+                <option value="yes">Yes</option>
+                <option value="no" selected>No</option>
+              </select>
+            </td>
+          </tr>
+          [% UNLESS service %]
+          <tr>
+            <td class='reportSelectSubTitle' align="right">First Assumed Host State:</td>
+            <td class='reportSelectItem'>
+              <select name='initialassumedhoststate'>
+                <option value=0>Unspecified</option>
+                <option value=-1>Current State</option>
+                <option value=3>Host Up</option>
+                <option value=4>Host Down</option>
+                <option value=5>Host Unreachable</option>
+              </select>
+            </td>
+          </tr>
+          [% END %]
+          <tr>
+            <td class='reportSelectSubTitle' align="right">First Assumed Service State:</td>
+            <td class='reportSelectItem'>
+              <select name='initialassumedservicestate'>
+                <option value="0">Unspecified</option>
+                <option value="-1">Current State</option>
+                <option value="6">Service Ok</option>
+                <option value="8">Service Warning</option>
+                <option value="7">Service Unknown</option>
+                <option value="9">Service Critical</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td valign="top" class='reportSelectSubTitle' align="right">Output Format:</td>
+            <td valign="top" class='reportSelectItem'>
+              <input type="radio" name="view_mode" value="html" checked>HTML
+              <input type="radio" name="view_mode" value="xls">XLS
+              <input type="radio" name="view_mode" value="csv">CSV
+              <input type="radio" name="view_mode" value="json">JSON
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2 align="center" class='dateSelectItem'><input type='submit' value='Create Availability Report!'></td>
+          </tr>
+        </table>
+      </form>
+
+      <br>
+      <hr>
+      <b>Other options:</b>
+      <br>
+      <div class="report_permalink">
+        Permanent url for this report: <a href="" id="permalink"></a>
+      </div>
+
+      [% IF c.config.exists('use_feature_reports') && c.config.use_feature_reports %]
+      <br>
+      <div>
+        <input name="email" value="Create E-Mail Report" onclick="window.location='reports2.cgi?action=edit&amp;report=new&amp;template=report_from_url.tt&amp;params.url='+encodeURIComponent(jQuery('#permalink').attr('href')); return false;" type="button">
+      </div>
+      [% END %]
+
+    </div -->
+
+<script type="text/javascript">
+  function update_permalink() {
+    var link = 'avail.cgi?'+jQuery("#avail_form").serialize();
+    jQuery('#permalink').text(link).attr('href', link);
+    jQuery('input[name=bookmark]').attr('value', 'cgi-bin/'+link); //put value in _add_bookmark.tt     
+  }
+  jQuery("#avail_form INPUT, #avail_form SELECT").on("change", update_permalink);
+  update_permalink();
+
+  function update_report_period_options() {
+    if(jQuery('#report_timeperiod').val() == "custom") {
+      jQuery('.custom_time').show();
+    } else {
+      jQuery('.custom_time').hide();
+    }
+  }
+
+  update_report_period_options();
+
+</script>
+
+[% PROCESS _footer.tt %]
