@@ -70,8 +70,26 @@
             </tr>
           </table -->
         </td>
-        <td align="center" valign="top" width="33%">[% PROCESS _host_status_details_box.tt %]</td>
-        <td align="center" valign="top" width="33%">[% PROCESS _service_status_details_box.tt %]</td>
+        <td align="center" valign="top" width="33%">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h5 class="panel-title text-center">Host Status Totals</h5>
+          </div>
+          <div class="panel-body">
+          [% PROCESS _host_status_details_box.tt %]
+          </div>
+        </div>
+        </td>
+        <td align="center" valign="top" width="33%">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h5 class="panel-title text-center">Service Status Totals</h5>
+          </div>
+          <div class="panel-body">
+        [% PROCESS _service_status_details_box.tt %]
+          </div>
+        </div>        
+        </td>
         <td align="right" valign="bottom">
           [% PROCESS _help.tt topic = "status_detail" %]
         </td>

@@ -97,19 +97,6 @@
 
 [% IF use_frames %]
 
-<!-- script>
-function themeAdjust(){  //true if Bootstrap 3-4 is loaded
-  var bootstrap_enabled = (typeof jQuery().emulateTransitionEnd == 'function');
-  if('[% theme %]' == 'Asam' && bootstrap_enabled){
-    //alert(bootstrap_enabled);
-    jQuery('div').removeClass('navsection');
-    jQuery('div.panel').add().css('padding-bottom','1px').css('margin-bottom','5px');
-    jQuery('img.nav_small_logo').add().css('height','25px');
-  }
-}
-</script -->
-
-
   </body>
 </html>
 [% END %]

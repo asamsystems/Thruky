@@ -15,7 +15,7 @@
   <div align="center" class='h5'>Host State Breakdowns:</div>
   
 [% ELSE %]
-  <!-- div align="center" class='dataTitle'>Host State Breakdowns:</div -->
+  <div align="center" class='dataTitle'>Host State Breakdowns:</div>
   <div align="center" class='h5'>Host State Breakdowns:</div>
 [% END %]
 

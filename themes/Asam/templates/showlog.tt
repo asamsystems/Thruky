@@ -22,6 +22,8 @@
             [% PROCESS _infobox.tt %]
             </div>
           </div>
+          </div>
+        <div class=col-xs-4>          
           <div class="panel panel-default">
             <div class="panel-heading">
               <h5 class="panel-title text-center">Filter</h5>
@@ -73,6 +75,11 @@
               </td>
             </tr>
             <tr>
+                <td colspan=3>
+                 &nbsp;&nbsp;<input type='checkbox' name='oldestfirst'[% IF oldestfirst %] checked[% END %]> Older Entries First
+                 </td>
+             </tr>
+             <tr>
              <td valign="middle">
                 &nbsp;&nbsp;<input type='submit' value='Update'>
                 <input type="hidden" name="archive" value="" id="archive">
@@ -85,7 +92,7 @@
           </div>
 
 
-        <div class=col-xs-4>
+        <!-- div class=col-xs-4>
           <div class="panel panel-default">
             <div class="panel-heading">
               <h5 class="panel-title text-center">Options</h5>
@@ -100,7 +107,7 @@
             </table>
             </div>
           </div>
-          </div>
+          </div -->
           </div>
           </form>
           </div>
