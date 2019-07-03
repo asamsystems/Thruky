@@ -149,7 +149,8 @@
     [%# bookmark/page link icons is hidden _add_bookmark.tt #%]
     <li><a href=# onclick="resetRefresh(); toggleElement('add_bookmark', undefined, true); refreshNavSections('bookmark_sections'); return false;">Add/edit bookmark</a></li>
     <li><a href=# onclick="toggleElement('show_link', undefined, true); document.getElementById('url_input').focus(); return false;">Show page link</a></li>
-    <li><a href="[% clean_referer(uri_with(c, 'view_mode' => 'json')) %]" target='_blank'>JSON export</a></li>
+    <!-- li><a href="[% clean_referer(uri_with(c, 'view_mode' => 'json')) %]" target='_blank'>JSON export</a></li -->
+    <li><a href="[% uri_with(c, 'view_mode' => 'json') %]" target="_blank">Export to JSON</a></li>
     <li><a href="[% uri_with(c, 'view_mode' => 'xls') %]" onclick="toggleElement('excel_export_columns', undefined, true); updateExcelPermanentLink(); return false;" id='excelexportlink'>Excel export</a></li>
     </ul>
 </div>
@@ -227,7 +228,8 @@
     <div align="center">[% PROCESS _pager.tt %]</div>
 
     </div>
-    </div>  <!-- end Name and filter panel -->    [% END %]
+    </div>  <!-- end Name and filter panel -->   
+    [% END %]
 
 [% UNLESS authorized_for_read_only %]
 <script type="text/javascript">
