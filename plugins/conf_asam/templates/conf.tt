@@ -2,7 +2,7 @@
 
 <div align="center">
 
-  <table border="0" class='table data ' style="max-width:1000px">
+  <table border="0" class='table data' style="max-width:1000px">
     <tr>
       <th class='data conftoolheader' style="text-align:center" colspan=2>General Configuration</th>
     </tr>
@@ -35,7 +35,7 @@
   </table>
 
   <br>
-  <table border="0" class='table data ' style="max-width:1000px">
+  <table border="0" class='table data' style="max-width:1000px">
     <tr>
       <th class='data conftoolheader' style="text-align:center" colspan=2>Site Configuration</th>
     </tr>

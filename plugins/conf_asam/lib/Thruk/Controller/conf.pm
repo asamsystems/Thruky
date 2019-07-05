@@ -2,7 +2,20 @@ package Thruk::Controller::conf;
 
 use strict;
 use warnings;
-use Module::Load qw/load/;
+use Monitoring::Config;
+use Socket qw/inet_ntoa/;
+use File::Copy;
+use Cpanel::JSON::XS;
+use Storable qw/dclone/;
+use Data::Dumper qw/Dumper/;
+use File::Slurp qw/read_file/;
+use Encode qw/decode_utf8 encode_utf8/;
+use Digest::MD5 qw/md5_hex/;
+use Thruk::Utils::References;
+use Thruk::Utils::Conf;
+use Thruk::Utils::Conf::Defaults;
+use Thruk::Utils::Plugin;
+use Thruk::Authentication::User;
 #use Thruk::Timer qw/timing_breakpoint/;
 
 =head1 NAME
@@ -28,24 +41,6 @@ sub index {
     # Safe Defaults required for changing backends
     return unless Thruk::Action::AddDefaults::add_defaults($c, Thruk::ADD_SAFE_DEFAULTS);
     #&timing_breakpoint('index start');
-
-    if(!$c->config->{'conf_modules_loaded'}) {
-        load Thruk::Utils::References;
-        load Thruk::Utils::Conf;
-        load Thruk::Utils::Conf::Defaults;
-        load Monitoring::Config;
-        load Socket, qw/inet_ntoa/;
-        load File::Copy;
-        load Cpanel::JSON::XS;
-        load Storable, qw/dclone/;
-        load Data::Dumper, qw/Dumper/;
-        load File::Slurp, qw/read_file/;
-        load Encode, qw(decode_utf8 encode_utf8);
-        load Digest::MD5, qw(md5_hex);
-        load Thruk::Utils::Plugin;
-        $c->config->{'conf_modules_loaded'} = 1;
-    }
-    #&timing_breakpoint('index modules loaded');
 
     my $subcat = $c->req->parameters->{'sub'}    || '';
     my $action = $c->req->parameters->{'action'} || 'show';
@@ -92,7 +87,7 @@ sub index {
        || ref($c->config->{'Thruk::Plugin::ConfigTool'}) ne 'HASH'
        || scalar keys %{$c->config->{'Thruk::Plugin::ConfigTool'}} == 0
     ) {
-        Thruk::Utils::set_message( $c, 'fail_message', 'Config Tool is disabled.<br>Please have a look at the <a href="'.$c->stash->{'url_prefix'}.'documentation.html#_component_thruk_plugin_configtool">config tool setup instructions</a>.' );
+        Thruk::Utils::set_message( $c, { style => 'fail_message', msg => 'Config Tool is disabled.<br>Please have a look at the <a href="'.$c->stash->{'url_prefix'}.'documentation.html#_component_thruk_plugin_configtool">config tool setup instructions</a>.', escape => 0 } );
     }
 
     if(exists $c->req->parameters->{'edit'} and defined $c->req->parameters->{'host'}) {
@@ -299,6 +294,34 @@ sub _process_json_page {
         return $c->render(json => $json);
     }
 
+    # service_description, same host service descriptions
+    if($type eq 'service_description') {
+        return unless Thruk::Utils::Conf::set_object_model($c);
+        $c->{'obj_db'}->read_rc_file();
+        my $descriptions = [];
+        my $objects;
+        my $ref = $c->req->parameters->{'ref'} ? $c->{'obj_db'}->get_object_by_id($c->req->parameters->{'ref'}) : undef;
+        if($ref) {
+            my $hosts = $c->{'obj_db'}->get_hosts_for_service($ref);
+            for my $id (values %{$hosts}) {
+                my $hst = $c->{'obj_db'}->get_object_by_id($id);
+                push @{$objects}, $hst if $hst;
+            }
+        } else {
+            $objects = $c->{'obj_db'}->get_objects_by_type('host');
+        }
+        for my $host (@{$objects}) {
+            my $services = $c->{'obj_db'}->get_services_for_host($host);
+            for my $svc (keys %{$services->{'group'}}, keys %{$services->{'host'}}) {
+                push @{$descriptions}, $svc;
+            }
+        }
+        my $json = [{ 'name' => $type.'s',
+                      'data' => [ sort @{Thruk::Utils::array_uniq($descriptions)} ],
+                   }];
+        return $c->render(json => $json);
+    }
+
     # objects attributes
     if($type eq 'attribute') {
         my $for  = $c->req->parameters->{'obj'};
@@ -416,7 +439,15 @@ sub _process_cgi_page {
     my($content, $data, $md5) = Thruk::Utils::Conf::read_conf($file, $defaults);
 
     # get list of cgi users
-    my $cgi_contacts = Thruk::Utils::Conf::get_cgi_user_list($c);
+    my $tmp = Thruk::Utils::Conf::get_cgi_user_list($c);
+    my $cgi_contacts = {};
+    for my $u (values %{$tmp}) {
+        if($u->{'alias'}) {
+            $cgi_contacts->{$u->{'name'}} = $u->{'name'}.' - '.$u->{'alias'};
+        } else {
+            $cgi_contacts->{$u->{'name'}} = $u->{'name'};
+        }
+    }
 
     for my $key (keys %{$data}) {
         next unless $key =~ m/^authorized_for_/mx;
@@ -430,6 +461,20 @@ sub _process_cgi_page {
         $data->{$key}->[2] = $cgi_groups;
     }
 
+    my $authkeys = [qw/
+        use_authentication
+        use_ssl_authentication
+        default_user_name
+        lock_author_names
+    /];
+    my $authgroupkeys = [];
+    for my $key (@{$Thruk::Authentication::User::possible_roles}) {
+        push @{$authkeys}, $key;
+        my $groupkey = $key;
+        $groupkey =~ s/^authorized_for_/authorized_contactgroup_for_/gmx;
+        push @{$authgroupkeys}, $groupkey;
+    }
+
     my $keys = [
         [ 'CGI Settings', [qw/
                         show_context_help
@@ -440,32 +485,8 @@ sub _process_cgi_page {
                         notes_url_target
                     /],
         ],
-        [ 'Authorization', [qw/
-                        use_authentication
-                        use_ssl_authentication
-                        default_user_name
-                        lock_author_names
-                        authorized_for_all_services
-                        authorized_for_all_hosts
-                        authorized_for_all_service_commands
-                        authorized_for_all_host_commands
-                        authorized_for_system_information
-                        authorized_for_system_commands
-                        authorized_for_configuration_information
-                        authorized_for_read_only
-                    /],
-        ],
-        [ 'Authorization Groups', [qw/
-                      authorized_contactgroup_for_all_services
-                      authorized_contactgroup_for_all_hosts
-                      authorized_contactgroup_for_all_service_commands
-                      authorized_contactgroup_for_all_host_commands
-                      authorized_contactgroup_for_system_information
-                      authorized_contactgroup_for_system_commands
-                      authorized_contactgroup_for_configuration_information
-                      authorized_contactgroup_for_read_only
-                    /],
-        ],
+        [ 'Authorization', $authkeys],
+        [ 'Authorization Groups', $authgroupkeys],
     ];
 
     $c->stash->{'keys'}     = $keys;
@@ -552,16 +573,6 @@ sub _process_thruk_page {
                         show_custom_vars
                     /],
         ],
-        [ 'Search', [qw/
-                        use_new_search
-                        use_ajax_search
-                        ajax_search_hosts
-                        ajax_search_hostgroups
-                        ajax_search_services
-                        ajax_search_servicegroups
-                        ajax_search_timeperiods
-                    /],
-        ],
         [ 'Paging', [qw/
                         use_pager
                         paging_steps
@@ -591,9 +602,18 @@ sub _process_users_page {
     my $defaults = Thruk::Utils::Conf::Defaults->get_cgi_cfg();
     $c->stash->{'readonly'} = (-w $file) ? 0 : 1;
 
-    # save changes to user
     my $user = $c->req->parameters->{'data.username'} || '';
+    my($name, $alias, $profile_file);
+    if($user ne '') {
+        ($name, $alias) = split(/\ \-\ /mx,$user, 2);
+        $profile_file = $c->config->{'var_path'}."/users/".$name;
+        $c->stash->{'profile_file'} = $profile_file;
+        $c->stash->{'profile_file_exists'} = -e $profile_file ? 1 : 0;
+    }
+
+    # save changes to user
     if($user ne '' and defined $file and $c->stash->{action} eq 'store') {
+        my($name, $alias) = split(/\ \-\ /mx,$user, 2);
         return unless Thruk::Utils::check_csrf($c);
         my $redirect = 'conf.cgi?action=change&sub=users&data.username='.$user;
         if($c->stash->{'readonly'}) {
@@ -603,6 +623,24 @@ sub _process_users_page {
         my $msg = _update_password($c);
         if(defined $msg) {
             Thruk::Utils::set_message( $c, 'fail_message', $msg );
+            return $c->redirect_to($redirect);
+        }
+
+        my $send = $c->req->parameters->{'send'} || '';
+        if($send eq 'lock account' || $send eq 'unlock account') {
+            my $userdata = Thruk::Utils::get_user_data($c, $name);
+            if($send eq 'unlock account') {
+                delete $userdata->{'login'}->{'locked'};
+            } else {
+                $userdata->{'login'}->{'locked'} = 1;
+            }
+            Thruk::Utils::store_user_data($c, $userdata, $name);
+        }
+        if($send eq 'remove user profile data') {
+            if(!Thruk::Utils::check_for_nasty_filename($name)) {
+                unlink($profile_file);
+                Thruk::Utils::set_message( $c, 'success_message', 'profile removed successfully' );
+            }
             return $c->redirect_to($redirect);
         }
 
@@ -634,19 +672,11 @@ sub _process_users_page {
 
     if($c->stash->{action} eq 'change' and $user ne '') {
         my($content, $data, $md5) = Thruk::Utils::Conf::read_conf($file, $defaults);
-        my($name, $alias)         = split(/\ \-\ /mx,$user, 2);
         $c->stash->{'show_user'}  = 1;
         $c->stash->{'user_name'}  = $name;
         $c->stash->{'md5'}        = $md5;
         $c->stash->{'roles'}      = {};
-        my $roles = [qw/authorized_for_all_services
-                        authorized_for_all_hosts
-                        authorized_for_all_service_commands
-                        authorized_for_all_host_commands
-                        authorized_for_system_information
-                        authorized_for_system_commands
-                        authorized_for_configuration_information
-                    /];
+        my $roles = $Thruk::Authentication::User::possible_roles;
         $c->stash->{'role_keys'}  = $roles;
         for my $role (@{$roles}) {
             $c->stash->{'roles'}->{$role} = 0;
@@ -656,6 +686,7 @@ sub _process_users_page {
         }
 
         $c->stash->{'has_htpasswd_entry'} = 0;
+        $c->stash->{'htpasswd_file'}      = $c->config->{'Thruk::Plugin::ConfigTool'}->{'htpasswd'} // '';
         if(defined $c->config->{'Thruk::Plugin::ConfigTool'}->{'htpasswd'}) {
             my $htpasswd = Thruk::Utils::Conf::read_htpasswd($c->config->{'Thruk::Plugin::ConfigTool'}->{'htpasswd'});
             $c->stash->{'has_htpasswd_entry'} = 1 if defined $htpasswd->{$name};
@@ -668,12 +699,7 @@ sub _process_users_page {
             $c->stash->{'contact'}        = $contacts->[0];
         }
 
-        $c->stash->{'contact_groups'} = $c->{'db'}->get_contactgroups_by_contact($c, $name);
-        my($croles, $can_submit_commands, $calias, $roles_by_group)
-                = Thruk::Utils::get_dynamic_roles($c, $name);
-        $c->stash->{'contact_roles'}  = $croles;
-        $c->stash->{'contact_can_submit_commands'} = $can_submit_commands;
-        $c->stash->{'roles_by_group'} = $roles_by_group;
+        $c->stash->{'profile_user'} = Thruk::Authentication::User->new($c, $name)->set_dynamic_attributes($c);
     }
 
     $c->stash->{'subtitle'} = "User Configuration";
@@ -906,7 +932,14 @@ sub _process_backends_page {
 sub _process_objects_page {
     my( $c ) = @_;
 
-    return unless Thruk::Utils::Conf::set_object_model($c);
+    my $rc = Thruk::Utils::Conf::set_object_model($c);
+    if($rc == -1) {
+        $c->stash->{errorMessage}       = "config tool unavailable";
+        $c->stash->{errorDescription}   = $c->stash->{set_object_model_err} || '';
+        return $c->detach('/error/index/99');
+    } elsif($rc == 0) {
+        return;
+    }
 
     _check_external_reload($c);
 
@@ -971,6 +1004,36 @@ sub _process_objects_page {
                     _clone_refs($c, $obj, $c->req->parameters->{'cloned'}, $c->req->parameters->{'clone_ref'});
                 }
             }
+
+            # save changes to cgi.cfg
+            my $type = $obj->get_type();
+            my $file = $c->config->{'Thruk::Plugin::ConfigTool'}->{'cgi.cfg'};
+            if($c->stash->{'conf_config'}->{'cgi.cfg'} && ($type eq 'contactgroup' || $type eq 'contact') && -w $file) {
+                my $name     = $obj->get_name();
+                my $defaults = Thruk::Utils::Conf::Defaults->get_cgi_cfg();
+                my($content, $data, $md5) = Thruk::Utils::Conf::read_conf($file, $defaults);
+                my $new_data              = {};
+                for my $key (keys %{$c->req->parameters}) {
+                    next unless $key =~ m/authdata\.authorized_for_/mx;
+                    $key =~ s/^authdata\.//gmx;
+                    my $key2 = $key;
+                    if($type eq 'contactgroup') {
+                        $key2 =~ s/^authorized_for_/authorized_contactgroup_for_/gmx;
+                    }
+                    my $users = {};
+                    for my $usr (@{$data->{$key2}->[1]}) {
+                        $users->{$usr} = 1;
+                    }
+                    if($c->req->parameters->{'authdata.'.$key}) {
+                        $users->{$name} = 1;
+                    } else {
+                        delete $users->{$name};
+                    }
+                    @{$new_data->{$key2}} = sort keys %{$users};
+                }
+                _store_changes($c, $file, $new_data, $defaults, undef, 1);
+            }
+
             if(defined $c->req->parameters->{'save_and_reload'}) {
                 return if _apply_config_changes($c);
             }
@@ -1095,6 +1158,26 @@ sub _process_objects_page {
         }
         $c->stash->{'file_link'} = $obj->{'file'}->{'display'} if defined $obj->{'file'};
         _gather_references($c, $obj);
+
+        # add roles
+        if($c->stash->{'conf_config'}->{'cgi.cfg'} && ($c->stash->{'type'} eq 'contactgroup' || $c->stash->{'type'} eq 'contact')) {
+            my $file     = $c->config->{'Thruk::Plugin::ConfigTool'}->{'cgi.cfg'};
+            my $defaults = Thruk::Utils::Conf::Defaults->get_cgi_cfg();
+            my($content, $data, $md5) = Thruk::Utils::Conf::read_conf($file, $defaults);
+            my $roles = $Thruk::Authentication::User::possible_roles;
+            $c->stash->{'md5'}       = $md5;
+            $c->stash->{'role_keys'} = $roles;
+            for my $role (@{$roles}) {
+                $c->stash->{'roles'}->{$role} = 0;
+                my $tstrole = $role;
+                if($c->stash->{'type'} eq 'contactgroup') {
+                    $tstrole =~ s/^authorized_for_/authorized_contactgroup_for_/gmx;
+                }
+                for my $tst (@{$data->{$tstrole}->[1]}) {
+                    $c->stash->{'roles'}->{$role}++ if $tst eq $c->stash->{'data_name'};
+                }
+            }
+        }
     }
 
     # set default type for start page
@@ -1108,7 +1191,6 @@ sub _process_objects_page {
     $c->{'obj_db'}->_reset_errors(1);
     return 1;
 }
-
 
 ##########################################################
 # apply config changes
@@ -1342,7 +1424,7 @@ sub _process_user_password_page {
                 $c->log->error("changing password for ".$user." failed: ".$err);
                 Thruk::Utils::set_message($c, 'fail_message', "Password change failed.");
             } else {
-                $c->log->info("user changed password for ".$user);
+                $c->audit_log("user changed password for ".$user);
                 Thruk::Utils::set_message($c, 'success_message', "Password changed successfully");
             }
         }
@@ -1391,7 +1473,7 @@ sub _update_password {
             return unless Thruk::Utils::check_csrf($c);
             my $err = _htpasswd_password($c, $user, undef);
             return $err if $err;
-            $c->log->info("admin removed password for ".$user);
+            $c->audit_log($c->stash->{remote_user}." removed password for ".$user);
             return;
         }
 
@@ -1403,7 +1485,7 @@ sub _update_password {
             if($pass1 eq $pass2) {
                 my $err = _htpasswd_password($c, $user, $pass1);
                 return $err if $err;
-                $c->log->info("admin changed password for ".$user);
+                $c->audit_log($c->stash->{remote_user}." changed password for ".$user);
                 return;
             } else {
                 return('Passwords do not match');
@@ -1485,7 +1567,7 @@ sub _get_htpasswd {
 ##########################################################
 # store changes to a file
 sub _store_changes {
-    my ( $c, $file, $data, $defaults, $update_in_conf ) = @_;
+    my ( $c, $file, $data, $defaults, $update_in_conf, $ignore_no_changes_made) = @_;
     return unless Thruk::Utils::check_csrf($c);
     my $old_md5 = $c->req->parameters->{'md5'};
     if(!defined $old_md5 || $old_md5 eq '') {
@@ -1500,6 +1582,9 @@ sub _store_changes {
     $c->log->debug("saving config changes to ".$file);
     my $res = Thruk::Utils::Conf::update_conf($file, $data, $old_md5, $defaults, $update_in_conf);
     if(defined $res) {
+        if($res eq "no changes made." && $ignore_no_changes_made) {
+            return;
+        }
         Thruk::Utils::set_message( $c, 'fail_message', $res );
         return;
     } else {
@@ -1568,7 +1653,7 @@ sub _get_context_object {
                                                 coretype => $c->{'obj_db'}->{'coretype'},
                                               );
         my $new_file   = $c->req->parameters->{'data.file'} || '';
-        my $file = _get_context_file($c, $obj, $new_file);
+        my $file = get_context_file($c, $obj, $new_file);
         return $obj unless $file;
         $obj->set_file($file);
         $obj->set_uniq_id($c->{'obj_db'});
@@ -1620,7 +1705,7 @@ sub _get_context_object {
             $obj = $objs->[0];
         }
         elsif(!defined $obj) {
-            Thruk::Utils::set_message( $c, 'fail_message', 'No such object. <a href="conf.cgi?sub=objects&action=new&amp;type='.$c->stash->{'type'}.'&amp;data.name='.$c->stash->{'data_name'}.'">Create it.</a>' );
+            Thruk::Utils::set_message( $c, { style => 'fail_message', msg => 'No such object. <a href="conf.cgi?sub=objects&action=new&amp;type='.Thruk::Utils::Filter::escape_html($c->stash->{'type'}).'&amp;data.name='.Thruk::Utils::Filter::escape_html($c->stash->{'data_name'}).'">Create it.</a>', escape => 0 } );
         }
     }
 
@@ -1628,7 +1713,13 @@ sub _get_context_object {
 }
 
 ##########################################################
-sub _get_context_file {
+
+=head2 get_context_file
+
+    returns file for name, creates new file unless already existing.
+
+=cut
+sub get_context_file {
     my($c, $obj, $new_file) = @_;
     my $files_root = $c->{'obj_db'}->get_files_root();
     if($files_root eq '') {
@@ -1758,9 +1849,8 @@ sub _set_files_stash {
         }
     }
 
-    # no encoding here, filenames are encoded already
-    $c->stash->{'filenames_json'} = Cpanel::JSON::XS->new->encode([{ name => 'files', data => [ sort @filenames ]}]);
-    $c->stash->{'files_json'}     = Cpanel::JSON::XS->new->encode($files_tree);
+    $c->stash->{'filenames_json'} = Thruk::Utils::Filter::json_encode([{ name => 'files', data => [ sort @filenames ]}]);
+    $c->stash->{'files_json'}     = Thruk::Utils::Filter::json_encode($files_tree);
     $c->stash->{'files_tree'}     = $files_tree;
 
     return $files_root;
@@ -1986,7 +2076,7 @@ sub _object_move {
     if($c->stash->{action} eq 'movefile') {
         return unless Thruk::Utils::check_csrf($c);
         my $new_file = $c->req->parameters->{'newfile'};
-        my $file     = _get_context_file($c, $obj, $new_file);
+        my $file     = get_context_file($c, $obj, $new_file);
         if(defined $file and $c->{'obj_db'}->move_object($obj, $file)) {
             Thruk::Utils::set_message( $c, 'success_message', ucfirst($c->stash->{'type'}).' \''.$obj->get_name().'\' moved successfully' );
         }
@@ -2475,13 +2565,15 @@ sub _config_reload {
     if($c->stash->{'peer_conftool'}->{'obj_reload_cmd'}) {
         if($c->{'obj_db'}->is_remote() && $c->{'obj_db'}->remote_config_reload($c)) {
             Thruk::Utils::set_message( $c, 'success_message', 'config reloaded successfully' );
-            $c->stash->{'last_changed'} = 0;
-            $c->stash->{'needs_commit'} = 0;
+            $c->{'obj_db'}->{'last_changed'} = 0;
+            $c->{'obj_db'}->{'needs_commit'} = 0;
+            Thruk::Utils::Conf::store_model_retention($c, $pkey);
         }
         elsif(!$c->{'obj_db'}->is_remote() && _cmd($c, $c->stash->{'peer_conftool'}->{'obj_reload_cmd'})) {
             Thruk::Utils::set_message( $c, 'success_message', 'config reloaded successfully' );
-            $c->stash->{'last_changed'} = 0;
-            $c->stash->{'needs_commit'} = 0;
+            $c->{'obj_db'}->{'last_changed'} = 0;
+            $c->{'obj_db'}->{'needs_commit'} = 0;
+            Thruk::Utils::Conf::store_model_retention($c, $pkey);
         } else {
             Thruk::Utils::set_message( $c, 'fail_message', 'config reload failed!' );
             $wait = 0;
@@ -2543,7 +2635,7 @@ sub _check_external_reload {
         my $last_reloaded = $c->stash->{'pi_detail'}->{$c->stash->{'param_backend'}}->{'program_start'} || 0;
         if($last_reloaded > $c->{'obj_db'}->{'last_changed'}) {
             $c->{'obj_db'}->{'last_changed'} = 0;
-            $c->stash->{'last_changed'}      = 0;
+            $c->stash->{'obj_model_changed'} = 1;
         }
     }
     return;
@@ -2652,16 +2744,5 @@ sub _get_non_config_tool_references {
 }
 
 ##########################################################
-
-=head1 AUTHOR
-
-Sven Nierlein, 2009-present, <sven@nierlein.org>
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

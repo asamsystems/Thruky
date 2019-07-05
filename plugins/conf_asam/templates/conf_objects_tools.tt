@@ -3,12 +3,12 @@
 <div align="center">
 <form action="conf.cgi" method="POST">
 <input type="hidden" name="sub" value="objects">
-  <table border="0" class='data table conftoolobj' style="max-width:1000px">
+  <table border="0" class='data table conftoolobj' style="min-width:1000px;max-width:1000px">
     [% PROCESS _conf_objects_menu.tt type="tools" %]
   </table>
 </form>
 <br><br>
-<table border="0" cellpadding="0" cellspacing="0" style="max-width:1000px">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="confdetails" style="min-width:1000px;max-width:1000px">
 <tr>
 
 [% IF tool != "start" %]

@@ -192,16 +192,39 @@ function init_conf_tool_buttons() {
         jQuery.ajax({
             url: 'conf.cgi',
             data: {
-                action: 'json',
-                type:   'dig',
-                host:   host,
-                token:  user_token
+                action:   'json',
+                type:     'dig',
+                host:      host,
+                CSRFtoken: CSRFtoken
             },
             type: 'POST',
             success: function(data) {
                 jQuery('#attr_table').find('.obj_address').val(data.address).effect('highlight', {}, 1000);
             }
         });
+        return false;
+    });
+
+    jQuery("#depsopen").on("click", function(ev) {
+        var menu = [{
+            'text': "Hostdepenendency",
+            'href': "conf.cgi?sub=objects&amp;type=hostdependency"
+        },{
+            'text': "Servicedepenendency",
+            'href': "conf.cgi?sub=objects&amp;type=servicedependency"
+        }];
+        show_action_menu(ev.target.parentNode, menu,null, null, null, null, "b-r");
+        return false;
+    });
+    jQuery("#escopen").on("click", function(ev) {
+        var menu = [{
+            'text': "Hostescalation",
+            'href': "conf.cgi?sub=objects&amp;type=hostescalation"
+        },{
+            'text': "Serviceescalation",
+            'href': "conf.cgi?sub=objects&amp;type=serviceescalation"
+        }];
+        show_action_menu(ev.target.parentNode, menu,null, null, null, null, "b-r");
         return false;
     });
 
@@ -296,10 +319,10 @@ function update_command_line(id) {
         url: 'conf.cgi',
         type: 'POST',
         data: {
-            action: 'json',
-            type:   'commanddetails',
-            command: cmd_name,
-            token:   user_token
+            action:   'json',
+            type:     'commanddetails',
+            command:   cmd_name,
+            CSRFtoken: CSRFtoken
         },
         success: function(data) {
             updateCommandLine(id, data[0].cmd_line, args);
@@ -437,7 +460,7 @@ function init_plugin_help_accordion(id) {
         heightStyle: 'content',
         fillSpace:   true,
         activate:    function(event, ui) {
-            if(ui.newHeader.size() == 0) {
+            if(!ui.newHeader || ui.newHeader.length == 0) {
                 // accordion is closing
                 return;
             }
@@ -492,10 +515,10 @@ function load_plugin_help(id, plugin) {
     jQuery.ajax({
         url: 'conf.cgi',
         data: {
-            action: 'json',
-            type:   'pluginhelp',
-            plugin:  plugin,
-            token:   user_token
+            action:   'json',
+            type:     'pluginhelp',
+            plugin:    plugin,
+            CSRFtoken: CSRFtoken
         },
         type: 'POST',
         success: function(data) {
@@ -532,13 +555,13 @@ function check_plugin_exec(id) {
     jQuery.ajax({
         url: 'conf.cgi',
         data: {
-            action: 'json',
-            type:   'pluginpreview',
-            command: command,
-            host:    host,
-            service: service,
-            args:    args,
-            token:   user_token
+            action:   'json',
+            type:     'pluginpreview',
+            command:   command,
+            host:      host,
+            service:   service,
+            args:      args,
+            CSRFtoken: CSRFtoken
         },
         type: 'POST',
         success: function(data) {
@@ -624,6 +647,44 @@ function conf_validate_object_form(f) {
     return true;
 }
 
+function save_plugins(btn) {
+    jQuery(btn).button({
+        icons: {primary: 'ui-waiting-button'},
+        disabled: true
+    });
+    window.setTimeout(function() {
+        jQuery(btn).button({
+            icons: {primary: 'ui-error-button'},
+            disabled: false
+        });
+    }, 30000);
+
+    jQuery.ajax({
+        url:   'conf.cgi?'+jQuery(btn).parents("FORM").serialize(),
+        data:  {},
+        type: 'POST',
+        success: function(data) {
+            // thruk will be restarted 1 second after this request, so wait at least 1 second till redirect to the plugins page again
+            window.setTimeout(function() {
+                jQuery(btn).button({
+                    icons:   {primary: 'ui-ok-button'},
+                    label:   'saved...',
+                    disabled: false
+                }).addClass('done');
+                window_location_replace('conf.cgi?sub=plugins&reload_nav=1');
+            }, 1300);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            jQuery(btn).button({
+                icons:   {primary: 'ui-error-button'},
+                label:   'failed',
+                disabled: false
+            });
+        }
+    });
+    return false;
+}
+
 /* if form id is set, append own form value to remote form and submit merged */
 function save_reload_apply(btn, formid, name) {
     if(!name) { name = "save_and_reload"; }
@@ -662,7 +723,7 @@ function conf_tool_cleanup(btn, link, hide) {
         jQuery(btn).button({
             icons: {primary: 'ui-waiting-button'},
             disabled: true
-        })
+        });
         var fix_buttons = jQuery('BUTTON.conf_cleanup_button_fix');
         if(fix_buttons.length > 0) {
             continue_cb = function() {
@@ -727,7 +788,7 @@ function conf_tool_cleanup(btn, link, hide) {
                 icons:   {primary: 'ui-error-button'},
                 label:   'failed',
                 disabled: false
-            })
+            });
             jQuery(btn).removeClass('conf_cleanup_button_fix');
         }
     });

@@ -37,7 +37,7 @@
       [% ELSIF obj.default.$key.exists('help') %]
         [% SET helpkey = obj.default.$key.help %]
       [% END %]
-      <td class='dataVal [% loopclass %] clickable conf_row'  width="18" [% info_popup_event_type %]="return overlib(this.abbr,CAPTION,'Help',WIDTH,600,[% c.config.info_popup_options %]);" abbr='&lt;b&gt;[% helpkey %]&lt;/b&gt;&lt;br&gt;[% escape_html(obj.get_help(helpkey)) | nl2br %]'><img src='[% url_prefix %]themes/[% theme %]/images/help.png' alt='help' title='help' width="16" height="16"></td>
+      <td class='dataVal [% loopclass %] clickable conf_row'  width="18" [% info_popup_event_type %]="return overlib(this.abbr,CAPTION,'Help',WIDTH,600,[% c.config.info_popup_options %]);" abbr="&lt;b&gt;[% helpkey %]&lt;/b&gt;&lt;br&gt;[% escape_html(obj.get_help(helpkey)) | nl2br %]"><img src='[% url_prefix %]themes/[% theme %]/images/help.png' alt='help' title='help' width="16" height="16"></td>
     </tr>
 
     [% IF !obj.default.exists(key) || obj.default.$key.type != 'LIST' || (obj_conf.$key.size > 0 && obj.conf.$key.0.substr(0,1) != '+') %]
@@ -51,13 +51,15 @@
       [% SET loopclass="dataEven" %]
   [% END %]
   <tr class="[% loopclass %]">
-    <td class='dataVar [% loopclass %] conf_row'>      <button id="attr_opener" class="conf_button">add new attribute</button>
-</td>
+    <td class='dataVar [% loopclass +%] conf_row' align="left"> 
+      <button id="attr_opener" class="conf_button">add new attribute</button>
+    </td>
     <td class='dataVar [% loopclass +%] conf_row' align="left"></td>
     <td class='dataVal [% loopclass +%] conf_row' align="left">
-      <input type="text" class="attrkey new_attr" name="newattr" id="newattr" value="new attribute..." [% IF use_ajax_search %]onfocus="this.click()" onclick="ajax_search.init(this, 'attribute', { url:'conf.cgi?action=json&amp;type=attribute&amp;obj=[% type %]', autosubmit:false, empty: true, emptytxt: 'new attribute...', emptyclass:'new_attr', filter:new_attr_filter[% IF obj.defined("has_custom") %], emptymsg:'add custom variable'[% END %], onselect:function() { on_attr_select(); return false; }, onemptyclick: function() { on_empty_click(); } })"[% END %]>
+      <input type="" class="attrkey new_attr" name="newattr" id="newattr" value="new attribute..." onfocus="this.click()" onclick="ajax_search.init(this, 'attribute', { url:'conf.cgi?action=json&amp;type=attribute&amp;obj=[% type | html %]', autosubmit:false, empty: true, emptytxt: 'new attribute...', emptyclass:'new_attr', filter:new_attr_filter[% IF obj.defined('has_custom') %], emptymsg:'add custom variable'[% END %], onselect:function() { on_attr_select(); return false; }, onemptyclick: function() { on_empty_click(); } })">
     </td>
-    <td class='dataVal [% loopclass %] conf_row' colspan=2></td>
+    <td class='dataVar [% loopclass +%] conf_row' align="left"></td>
+    <!-- td class='dataVal [% loopclass %] conf_row' colspan=2></td -->
     <!-- td class='dataVal [% loopclass %] conf_row'></td -->
   </tr>
 
@@ -85,7 +87,7 @@
       -->
       </script>
 
-      <table class="table" id="new_attribute_pane" style="font-size:12px;display:none">
+      <table border="1" class='table' cellspacing="0" cellpadding="0" id="new_attribute_pane" style="font-size:12px;display:none">
         <tr>
           <td class='filter'>
             <table class=table>

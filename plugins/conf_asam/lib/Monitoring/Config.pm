@@ -97,7 +97,7 @@ sub new {
         'needs_commit'       => 0,
         'last_changed'       => 0,
         'needs_index_update' => 0,
-        'coretype'           => 'nagios',
+        'coretype'           => 'auto',
         'cache'              => {},
         'remotepeer'         => undef,
     };
@@ -135,7 +135,7 @@ sub init {
     if(defined $remotepeer and lc($remotepeer->{'type'}) eq 'http') {
         $self->{'remotepeer'} = $remotepeer;
     }
-    $self->{'stats'}      = $stats if defined $stats;
+    $self->{'stats'} = $stats if defined $stats;
 
     # some keys might have been changed in the thruk_local.conf, so update them
     for my $key (qw/git_base_dir/) {
@@ -143,10 +143,8 @@ sub init {
     }
 
     # update readonly config
-    my $readonly_changed = 0;
     if($self->_array_diff($self->_list($self->{'config'}->{'obj_readonly'}), $self->_list($config->{'obj_readonly'}))) {
         $self->{'config'}->{'obj_readonly'} = $config->{'obj_readonly'};
-        $readonly_changed = 1;
 
         # update all readonly file settings
         for my $file (@{$self->{'files'}}) {
@@ -228,10 +226,10 @@ sub commit {
         local $ENV{THRUK_BACKEND_NAME} = $backend_name;
         my $cmd = $c->config->{'Thruk::Plugin::ConfigTool'}->{'pre_obj_save_cmd'}." pre '".$filesroot."' 2>&1";
         my($rc, $out) = Thruk::Utils::IO::cmd($c, $cmd);
-        $c->log->info("pre save hook: '" . $cmd . "', rc: " . $rc);
+        $c->log->debug("pre save hook: '" . $cmd . "', rc: " . $rc);
         if($rc != 0) {
             $c->log->info('pre save hook out: '.$out);
-            Thruk::Utils::set_message( $c, 'fail_message', "Save canceled by pre_obj_save_cmd hook!\n".$out );
+            Thruk::Utils::set_message( $c, { style => 'fail_message', msg => "Save canceled by pre_obj_save_cmd hook!\n".$out, escape => 0 });
             return;
         }
         $c->log->debug('pre save hook out: '.$out);
@@ -242,7 +240,7 @@ sub commit {
         if($c && !$ENV{'THRUK_TEST_CONF_NO_LOG'}) {
             my $uniq = {};
             for my $l (@{$self->{'logs'}}) {
-                $c->log->info($l) unless $uniq->{$l};
+                $c->audit_log($l) unless $uniq->{$l};
                 $uniq->{$l} = 1;
             }
         }
@@ -260,11 +258,11 @@ sub commit {
             $rc = 0;
         } else {
             # do some logging
-            $c->log->info(sprintf("[config][%s][%s] %s file '%s'",
+            $c->audit_log(sprintf("[config][%s][%s] %s file '%s'",
                                         $c->{'db'}->get_peer_by_key($c->stash->{'param_backend'})->{'name'},
                                         $c->stash->{'remote_user'},
                                         $is_new_file ? 'created' : 'saved',
-                                        $file->{'path'},
+                                        $file->{'display'},
             )) if($c && !$ENV{'THRUK_TEST_CONF_NO_LOG'});
         }
         push @{$files->{'changed'}}, [ $file->{'display'}, decode_utf8("".$file->get_new_file_content()), $file->{'mtime'} ] unless $file->{'deleted'};
@@ -277,10 +275,10 @@ sub commit {
             push @new_files, $f;
         } else {
             if($c && $f->{'deleted'}) {
-                $c->log->info(sprintf("[config][%s][%s] deleted file '%s'",
+                $c->audit_log(sprintf("[config][%s][%s] deleted file '%s'",
                                             $c->{'db'}->get_peer_by_key($c->stash->{'param_backend'})->{'name'},
                                             $c->stash->{'remote_user'},
-                                            $f->{'path'},
+                                            $f->{'display'},
                 )) if $c;
             }
             push @{$files->{'deleted'}}, $f->{'display'};
@@ -305,10 +303,10 @@ sub commit {
         local $ENV{THRUK_BACKEND_NAME} = $backend_name;
         my $cmd = $c->config->{'Thruk::Plugin::ConfigTool'}->{'post_obj_save_cmd'}." post '".$filesroot."' 2>&1";
         my($rc, $out) = Thruk::Utils::IO::cmd($c, $cmd);
-        $c->log->info("post save hook: '" . $cmd . "', rc: " . $rc);
+        $c->log->debug("post save hook: '" . $cmd . "', rc: " . $rc);
         if($rc != 0) {
             $c->log->info('post save hook out: '.$out);
-            Thruk::Utils::set_message( $c, 'fail_message', "post_obj_save_cmd hook failed!\n".$out );
+            Thruk::Utils::set_message( $c, { style => 'fail_message', msg => "post_obj_save_cmd hook failed!\n".$out, escape => 0 });
             return;
         }
         $c->log->debug('post save hook out: '.$out);
@@ -1171,7 +1169,7 @@ sub rename_dependencies {
         for my $oid (keys %{$refs->{$t}}) {
             my $obj = $self->get_object_by_id($oid);
             if($obj->{'file'}->{'readonly'}) {
-                push @{$self->{'errors'}}, "could not update dependency in read-only file: ".$obj->{'file'}->{'path'};
+                push @{$self->{'errors'}}, "could not update dependency in read-only file: ".$obj->{'file'}->{'display'};
                 next;
             }
             for my $key (keys %{$refs->{$t}->{$oid}}) {
@@ -1235,7 +1233,7 @@ sub clone_refs {
     if($incoming) {
         for my $type (keys %{$incoming}) {
             for my $name (keys %{$incoming->{$type}}) {
-                my $ref_id = $incoming->{$type}->{$name};
+                my $ref_id = $incoming->{$type}->{$name}->{'id'};
                 my $ref    = $self->get_object_by_id($ref_id);
                 if(!$test_mode && $ref->{'file'}->{'readonly'}) {
                     next;
@@ -1285,7 +1283,10 @@ sub gather_references {
         $incoming->{$type} = {};
         for my $id (keys %{$refs->{$type}}) {
             my $obj = $self->get_object_by_id($id);
-            $incoming->{$type}->{$obj->get_name()} = $id;
+            $incoming->{$type}->{$obj->get_name()} = {
+                id       => $id,
+                readonly => $obj->{'file'}->readonly(),
+            };
         }
     }
 
@@ -1511,7 +1512,7 @@ sub is_host_in_hostgroup {
 # INTERNAL SUBS
 ##########################################################
 sub _set_config {
-    my $self  = shift;
+    my($self)  = @_;
 
     if($self->{'config'}->{'core_conf'}) {
         $self->{'config'}->{'obj_file'}          = [];
@@ -1619,7 +1620,7 @@ sub _update_core_conf {
 
 ##########################################################
 sub _set_coretype {
-    my $self = shift;
+    my($self) = @_;
 
     # fixed value from config
     if(defined $self->{'config'}->{'core_type'} and $self->{'config'}->{'core_type'} ne 'auto') {
@@ -1633,9 +1634,19 @@ sub _set_coretype {
         return;
     }
 
-    if(defined $self->{'_corefile'} and defined $self->{'_corefile'}->{'conf'}->{'naemon_user'}) {
-        $self->{'coretype'} = 'naemon';
-        return;
+    if(defined $self->{'_corefile'}) {
+        if($self->{'_corefile'}->{'conf'}->{'naemon_user'}) {
+            $self->{'coretype'} = 'naemon';
+            return;
+        }
+        if($self->{'_corefile'}->{'conf'}->{'command_file'} && $self->{'_corefile'}->{'conf'}->{'command_file'} =~ m|/naemon\.cmd|gmx) {
+            $self->{'coretype'} = 'naemon';
+            return;
+        }
+        if($self->{'_corefile'}->{'conf'}->{'query_socket'} && $self->{'_corefile'}->{'conf'}->{'query_socket'} =~ m|/naemon\.qh|gmx) {
+            $self->{'coretype'} = 'naemon';
+            return;
+        }
     }
 
     # get core from init script link (omd)
@@ -1644,6 +1655,11 @@ sub _set_coretype {
             $self->{'coretype'} = readlink($ENV{'OMD_ROOT'}.'/etc/init.d/core');
             return;
         }
+    }
+
+    if($self->{'coretype'} eq 'auto') {
+        # fallback to naemon
+        $self->{'coretype'} = 'naemon';
     }
 
     return;
@@ -1839,7 +1855,7 @@ sub _check_files_changed {
         if($check == 1) {
             if(!$reload || $file->{'changed'}) {
                 push @newfiles, $file;
-                push @{$self->{'errors'}}, "file ".$file->{'path'}." has been deleted.";
+                push @{$self->{'errors'}}, "file ".$file->{'display'}." has been deleted.";
                 $self->{'needs_index_update'} = 1;
                 next;
             }
@@ -1856,7 +1872,7 @@ sub _check_files_changed {
                     $self->{'obj_model_changed'}  = 1;
                     $self->{'needs_index_update'} = 1;
                 } else {
-                    push @{$self->{'errors'}}, "Conflict in file ".$file->{'path'}.". File has been changed on disk and via config tool.";
+                    push @{$self->{'errors'}}, "Conflict in file ".$file->{'display'}.". File has been changed on disk and via config tool.";
                     push @{$self->{'errors'}}, @{$file->{'errors'}} if $file->{'errors'};
                 }
             }
@@ -2135,7 +2151,8 @@ sub _check_references {
             # host are allowed to have a register 0
             return if ($link eq 'host' and defined $templates_by_name->{$link}->{$val});
 
-
+            # service parents cannot be checked right now
+            return if $link eq 'service_description';
 
             # shinken defines this command by itself
             return if ($self->{'coretype'} eq 'shinken' and $val eq 'bp_rule');
@@ -2327,7 +2344,7 @@ sub _array_diff {
 sub _list {
     $_[1] = [] unless defined $_[1];
     if(ref $_[1] ne 'ARRAY') { $_[1] = [$_[1]]; }
-    return;
+    return $_[1];
 }
 
 ##########################################################
@@ -2559,7 +2576,7 @@ sub read_rc_file {
     my($self, $file) = @_;
     my @rcfiles  = glob($file || '~/.naglintrc /etc/thruk/naglint.conf '.(defined $ENV{'OMD_ROOT'} ? $ENV{'OMD_ROOT'}.'/etc/thruk/naglint.conf' : ''));
     for my $f (@rcfiles) {
-        if(defined $f || -r $f) {
+        if(defined $f && -r $f) {
             $file = $f;
             last;
         }
@@ -2758,16 +2775,5 @@ sub _set_output_format {
 }
 
 ##########################################################
-
-=head1 AUTHOR
-
-Sven Nierlein, 2009-present, <sven@nierlein.org>
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

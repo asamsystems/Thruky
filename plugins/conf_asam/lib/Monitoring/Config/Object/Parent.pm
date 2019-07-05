@@ -7,6 +7,7 @@ use Digest::MD5 qw(md5_hex);
 use Storable qw(dclone);
 use Scalar::Util qw/weaken/;
 use Monitoring::Config::Help;
+use Monitoring::Config::Object;
 
 =head1 NAME
 
@@ -134,6 +135,10 @@ sub as_text {
         my $value;
         my $type = defined $self->{'default'}->{$key} ? $self->{'default'}->{$key}->{'type'} : '';
         if($type eq 'LIST' || $type eq 'ENUM') {
+            if(ref $self->{'conf'}->{$key} eq '') {
+                my $list_join_string = $cfg->{'list_join_string'};
+                $self->{'conf'}->{$key} = [split(/$list_join_string/mx, $self->{'conf'}->{$key})];
+            }
             $value = join($cfg->{'list_join_string'}, @{$self->{'conf'}->{$key}});
         } else {
             $value = $self->{'conf'}->{$key} // '';
@@ -288,6 +293,21 @@ sub get_primary_name {
         return $self->{'name'} if defined $self->{'name'};
     }
 
+    # just combine all attributes from all keys
+    if($self->{'primary_name_all_keys'}) {
+        my $values = [];
+        for my $key ($self->{'primary_key'}->[0], @{$self->{'primary_key'}->[1]}) {
+            next unless defined $conf->{$key};
+            my $val = $conf->{$key};
+            if(ref $val eq 'ARRAY') {
+                push @{$values}, join('~', @{$conf->{$key}});
+            } else {
+                push @{$values}, $conf->{$key}
+            }
+        }
+        return(join("<>", @{$values}));
+    }
+
     # multiple primary keys
     if(ref $self->{'primary_key'}->[1] eq '') {
         my @keys;
@@ -300,6 +320,10 @@ sub get_primary_name {
 
     # secondary keys
     my $primary = $self->{'name'} || $conf->{$self->{'primary_key'}->[0]};
+
+    if(ref $primary eq 'ARRAY') {
+        $primary = join(",", @{$primary});
+    }
 
     return $primary unless $full;
     my $secondary = [];
@@ -922,16 +946,5 @@ sub _business_impact_keys {
         "Development",           # 0
     ];
 }
-
-=head1 AUTHOR
-
-Sven Nierlein, 2009-present, <sven@nierlein.org>
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

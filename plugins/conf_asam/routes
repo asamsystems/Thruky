@@ -15,7 +15,7 @@ $app->config->{'use_feature_configtool'} = 1;
 # requested roles
 Thruk::Utils::Menu::insert_item('System', {
                                 'href'  => '/thruk/cgi-bin/conf.cgi',
-                                'name'  => 'Config Tool',
+                                'name'  => 'Config Tool2',
                                 'roles' => [qw/authorized_for_configuration_information
                                                authorized_for_system_commands/],
 });

@@ -40,6 +40,9 @@ $Monitoring::Config::Object::Serviceescalation::Defaults = {
     'hostgroups'             => { type => 'ALIAS', 'name' => 'hostgroup_name' },
 };
 
+$Monitoring::Config::Object::Serviceescalation::primary_keys = [ 'host_name', [ 'hostgroup_name' ] ];
+$Monitoring::Config::Object::Serviceescalation::Defaults::standard_keys = [ 'host_name', 'service_description', 'contact_groups', 'first_notification', 'last_notification', 'escalation_period', 'escalation_options' ];
+
 ##########################################################
 
 =head1 METHODS
@@ -53,25 +56,16 @@ sub BUILD {
     my $class = shift || __PACKAGE__;
     my $self = {
         'type'              => 'serviceescalation',
-        'primary_key'       => [ 'service_description', [ 'host_name', 'hostgroup_name' ] ],
+        'primary_key'       => $Monitoring::Config::Object::Serviceescalation::primary_keys,
         'default'           => $Monitoring::Config::Object::Serviceescalation::Defaults,
+        'standard'          => $Monitoring::Config::Object::Serviceescalation::Defaults::standard_keys,
         'can_have_no_name'  => 1,
+        'primary_name_all_keys' => 1,
     };
     bless $self, $class;
     return $self;
 }
 
 ##########################################################
-
-=head1 AUTHOR
-
-Sven Nierlein, 2009-present, <sven@nierlein.org>
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

@@ -50,6 +50,7 @@ $Monitoring::Config::Object::Servicedependency::Defaults = {
 };
 
 $Monitoring::Config::Object::Servicedependency::primary_keys = [ 'service_description', [ 'host_name', 'hostgroup_name' ] ];
+$Monitoring::Config::Object::Servicedependency::Defaults::standard_keys = [ 'dependent_host_name', 'dependent_service_description', 'host_name', 'service_description', 'execution_failure_criteria', 'notification_failure_criteria' ];
 
 ##########################################################
 
@@ -66,22 +67,13 @@ sub BUILD {
         'type'        => 'servicedependency',
         'primary_key' => $Monitoring::Config::Object::Servicedependency::primary_keys,
         'default'     => $Monitoring::Config::Object::Servicedependency::Defaults,
+        'standard'    => $Monitoring::Config::Object::Servicedependency::Defaults::standard_keys,
+        'primary_name_all_keys' => 1,
     };
     bless $self, $class;
     return $self;
 }
 
 ##########################################################
-
-=head1 AUTHOR
-
-Sven Nierlein, 2009-present, <sven@nierlein.org>
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

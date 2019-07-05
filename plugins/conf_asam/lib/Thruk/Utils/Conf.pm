@@ -11,9 +11,17 @@ use Scalar::Util qw/weaken/;
 #use Thruk::Timer qw/timing_breakpoint/;
 
 use constant {
+    REACHABLE        => 0,
+    UNREACHABLE      => 1,
+    HIDDEN_USER      => 2,
+    HIDDEN_PARAM     => 3,
+    DISABLED_AUTH    => 4,
+
     DISABLED_CONF    => 5,
     HIDDEN_CONF      => 6,
     UP_CONF          => 7,
+
+    HIDDEN_LMD_PARENT => 8,
 };
 
 =head1 NAME
@@ -34,36 +42,46 @@ Helper Functios for the Config Tool
 
 put objects model into stash
 
+returns 1 on success, 0 if you have to wait and it redirects or -1 on errors
+
 =cut
 sub set_object_model {
     my ( $c, $no_recursion ) = @_;
     delete $c->stash->{set_object_model_err};
     my $cached_data = $c->cache->get->{'global'} || {};
-    Thruk::Action::AddDefaults::set_processinfo($c, undef, 2, $cached_data, 1);
+    Thruk::Action::AddDefaults::set_processinfo($c, 2); # Thruk::ADD_CACHED_DEFAULTS
     $c->stash->{has_obj_conf} = scalar keys %{get_backends_with_obj_config($c)};
 
     # if this is no obj config yet, try updating process info which updates
     # configuration information from http backends
     if(!$c->stash->{has_obj_conf}) {
-        Thruk::Action::AddDefaults::set_processinfo($c, undef, undef, undef, 1);
+        Thruk::Action::AddDefaults::set_processinfo($c);
         $c->stash->{has_obj_conf} = scalar keys %{get_backends_with_obj_config($c)};
     }
 
     if(!$c->stash->{has_obj_conf}) {
+        delete $c->{'obj_db'};
         $c->stash->{set_object_model_err} = "backend has no configtool section";
-        return;
+        return -1;
     }
 
     my $refresh = $c->req->parameters->{'refreshdata'} || 0;
     delete $c->req->parameters->{'refreshdata'};
 
     $c->stats->profile(begin => "_update_objects_config()");
-    my $model         = $c->app->obj_db_model;
     my $peer_conftool = $c->{'db'}->get_peer_by_key($c->stash->{'param_backend'});
-    Thruk::Utils::Conf::get_default_peer_config($peer_conftool->{'configtool'});
+    get_default_peer_config($peer_conftool->{'configtool'});
+    append_global_peer_config($c, $peer_conftool->{'configtool'});
     $c->stash->{'peer_conftool'} = $peer_conftool->{'configtool'};
 
+    if($peer_conftool->{'configtool'}->{'disable'}) {
+        delete $c->{'obj_db'};
+        $c->stash->{set_object_model_err} = "configtool is disabled for this backend";
+        return -1;
+    }
+
     # already parsed?
+    my $model = $c->app->obj_db_model;
     my $jobid = $model->currently_parsing($c->stash->{'param_backend'});
     if(    Thruk::Utils::Conf::get_model_retention($c, $c->stash->{'param_backend'})
        and Thruk::Utils::Conf::init_cached_config($c, $peer_conftool->{'configtool'}, $model)
@@ -462,21 +480,21 @@ get list of cgi users from cgi.cfg, htpasswd and contacts table
 =cut
 
 sub get_cgi_user_list {
-    my ( $c ) = @_;
+    my($c) = @_;
 
     # get users from core contacts
     my $contacts = $c->{'db'}->get_contacts( filter => [ Thruk::Utils::Auth::get_auth_filter( $c, 'contact' ) ],
                                              remove_duplicates => 1);
     my $all_contacts = {};
     for my $contact (@{$contacts}) {
-        $all_contacts->{$contact->{'name'}} = $contact->{'name'}." - ".$contact->{'alias'};
+        $all_contacts->{$contact->{'name'}} = { name => $contact->{'name'}, alias => $contact->{'alias'}};
     }
 
     # add users from htpasswd
     if(defined $c->config->{'Thruk::Plugin::ConfigTool'}->{'htpasswd'}) {
         my $htpasswd = read_htpasswd($c->config->{'Thruk::Plugin::ConfigTool'}->{'htpasswd'});
         for my $user (keys %{$htpasswd}) {
-            $all_contacts->{$user} = $user unless defined $all_contacts->{$user};
+            $all_contacts->{$user} = { name => $user } unless defined $all_contacts->{$user};
         }
     }
 
@@ -491,12 +509,19 @@ sub get_cgi_user_list {
             push @{$extra_user}, @{$data->{$key}->[1]};
         }
         for my $user (@{$extra_user}) {
-            $all_contacts->{$user} = $user unless defined $all_contacts->{$user};
+            $all_contacts->{$user} = { name => $user } unless defined $all_contacts->{$user};
         }
     }
 
+    # add users from profiles
+    my @profiles = glob($c->config->{'var_path'}."/users/*");
+    for my $profile (@profiles) {
+        $profile =~ s/^.*\///gmx;
+        $all_contacts->{$profile} = { name => $profile } unless defined $all_contacts->{$profile};
+    }
+
     # add special users
-    $all_contacts->{'*'} = '*';
+    $all_contacts->{'*'} = { name => '*' };
 
     return $all_contacts;
 }
@@ -607,6 +632,7 @@ sub store_model_retention {
         store($data, $file);
         $c->config->{'conf_retention'}      = [stat($file)];
         $c->config->{'conf_retention_file'} = $file;
+        $c->config->{'conf_retention_md5'}  = $c->cluster->is_clustered() ? md5_hex(scalar read_file($file)) : '';
         $c->stash->{'obj_model_changed'} = 0;
         $c->log->debug('saved object retention data');
     };
@@ -645,9 +671,11 @@ sub get_model_retention {
     if(! -f $file) {
         $file  = $c->config->{'var_path'}."/obj_retention.".$backend.".dat";
     }
+    # REMOVE AFTER: 01.01.2020
     if(! -f $file) {
         $file  = $c->config->{'var_path'}."/obj_retention.dat";
     }
+    # </REMOVE AFTER>
 
     if(! -f $file) {
         return 1 if $model->cache_exists($backend);
@@ -661,10 +689,16 @@ sub get_model_retention {
         and $stat[9] <= $c->config->{'conf_retention'}->[9]
         and $c->config->{'conf_retention_file'} eq $file
     ) {
-       return 1;
+        return 1 unless $c->cluster->is_clustered();
+        # cannot trust file timestamp in cluster mode since clocks might not be synchronous
+        my $md5 = md5_hex(scalar read_file($file));
+        if($c->config->{'conf_retention_md5'} eq $md5) {
+            return 1;
+        }
     }
     $c->config->{'conf_retention'}      = \@stat;
     $c->config->{'conf_retention_file'} = $file;
+    $c->config->{'conf_retention_md5'}  = $c->cluster->is_clustered() ? md5_hex(scalar read_file($file)) : '';
 
     # try to retrieve retention data
     eval {
@@ -798,6 +832,24 @@ sub get_default_peer_config {
 }
 
 ##########################################################
+
+=head2 append_global_peer_config
+
+append/merge global config tool settings
+
+=cut
+sub append_global_peer_config {
+    my($c, $config) = @_;
+    $config->{'obj_readonly'} = Thruk::Utils::list($config->{'obj_readonly'});
+    if($c->config->{'Thruk::Plugin::ConfigTool'}->{'obj_readonly'}) {
+        push @{$config->{'obj_readonly'}},
+            @{Thruk::Utils::list($c->config->{'Thruk::Plugin::ConfigTool'}->{'obj_readonly'})};
+        $config->{'obj_readonly'} = Thruk::Utils::array_uniq($config->{'obj_readonly'});
+    }
+    return;
+}
+
+##########################################################
 sub _compare_configs {
     my($c1, $c2) = @_;
 
@@ -898,7 +950,10 @@ sub get_backends_with_obj_config {
     for my $peer (@peers) {
         my $min_key_size = 0;
         if(defined $peer->{'configtool'}->{remote} and $peer->{'configtool'}->{remote} == 1) { $min_key_size = 1; }
-        if(scalar keys %{$peer->{'configtool'}} > $min_key_size) {
+        if($peer->{'configtool'}->{'disable'}) {
+            $c->stash->{'backend_detail'}->{$peer->{'key'}}->{'disabled'} = DISABLED_CONF;
+        }
+        elsif(scalar keys %{$peer->{'configtool'}} > $min_key_size) {
             $c->stash->{'backend_detail'}->{$peer->{'key'}}->{'disabled'} = HIDDEN_CONF;
         } else {
             $c->stash->{'backend_detail'}->{$peer->{'key'}}->{'disabled'} = DISABLED_CONF;
@@ -909,6 +964,7 @@ sub get_backends_with_obj_config {
     for my $peer (@peers) {
         next if defined $peer->{'hidden'} and $peer->{'hidden'} == 1;
         if(scalar keys %{$peer->{'configtool'}} > 0) {
+            next if $peer->{'configtool'}->{'disable'};
             $firstpeer = $peer->{'key'} unless defined $firstpeer;
             $backends->{$peer->{'key'}} = $peer->{'configtool'};
         }
@@ -918,6 +974,7 @@ sub get_backends_with_obj_config {
     if(!defined $firstpeer) {
         for my $peer (@peers) {
             if(scalar keys %{$peer->{'configtool'}} > 0) {
+                next if $peer->{'configtool'}->{'disable'};
                 $firstpeer = $peer->{'key'} unless defined $firstpeer;
                 $backends->{$peer->{'key'}} = $peer->{'configtool'};
             }
@@ -940,6 +997,9 @@ sub get_backends_with_obj_config {
         }
     }
     $c->stash->{'param_backend'} = $param_backend unless $c->stash->{'param_backend'};
+    if($c->stash->{'param_backend'} && $c->stash->{'backend_detail'}->{$c->stash->{'param_backend'}}->{'disabled'} == DISABLED_CONF) {
+        $c->stash->{'param_backend'} = '';
+    }
 
     if($c->stash->{'param_backend'} eq '' and defined $firstpeer) {
         $c->stash->{'param_backend'} = $firstpeer;
@@ -964,6 +1024,7 @@ sub _get_peer_keys_without_configtool {
     my @fetch;
     #&timing_breakpoint('_get_peer_keys_without_configtool');
     for my $peer (@peers) {
+        next if (defined $peer->{'disabled'} && $peer->{'disabled'} == HIDDEN_LMD_PARENT);
         for my $addr (@{$peer->peer_list()}) {
             if($addr =~ /^http/mxi && (!defined $peer->{'configtool'} || scalar keys %{$peer->{'configtool'}} == 0)) {
                 if(!$c->stash->{'failed_backends'}->{$peer->{'key'}}) {
@@ -1023,16 +1084,5 @@ sub start_file_edit {
 }
 
 ##########################################################
-
-=head1 AUTHOR
-
-Sven Nierlein, 2009-present, <sven@nierlein.org>
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;
