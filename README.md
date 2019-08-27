@@ -7,8 +7,7 @@ To find the theme/plugin suitable for your installed Thruk version have a look a
 Eg. Tag 2.30-3_1 means this theme/plugin is for Thruk version 2.30-3. the `_1` indicates the theme/plugin update sequence.
 
 # Activate theme
-Adding the `Asam` theme to your Thruk installation is really simple:
-- Download and copy the themes/Asam dir to your thruk/themes/themes-available dir
-- create a link from thruk/themes/themes-enabled to thruk/themes/themes-available/Asam
-- If you are using OMD: create a link from omd/sites/<your site name>/etc/thruk/themes-enabled to share/thruk/themes/themes-available/Asam
-- refresh your thruk page and select theme Asam
+See https://www.thruk.org/documentation/themes.html#_installation
+
+# Activate plugin
+See https://www.thruk.org/documentation/plugins.html#_installation
