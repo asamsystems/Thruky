@@ -4,7 +4,7 @@ The idea behind this is to overlay an existing thruk theme (Thruk2) with Bootstr
 None but 3 existing thruk files needed customization for this to work.  
 \
 All Thruk features should work because all HTML tags, id's, classes are untouched.  
-I am not an expert on Bootstrap and jQuery so **ALL help and feedback is welcome**. Please dot not hesitate to contact me...
+I am not an expert on Bootstrap and jQuery so **ALL help and feedback is welcome**. Please dot not hesitate to contact me...  
 Go ahead and give it try.  
 ### Install/enable Asam theme:
 First cd to your themes dir eg. `thruk/themes/themes-available`
