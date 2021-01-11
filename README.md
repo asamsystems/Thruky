@@ -1,13 +1,13 @@
 ## Theme Asam for Thruk Monitoring
 Bootstrap 4 wrapped theme for Thruk Monitoring (http://www.thruk.org) version 3.30 and up.  
-The idea behind this is to overlay an existing thruk theme (Thruk2) with Bootstrap 4 and lay-out manipulation with jQuery.  
+The idea behind this is to overlay an existing thruk theme (ie. Thruk2) with Bootstrap 4 and manipulate lay-out with jQuery.  
 None but 3 existing thruk files needed customization for this to work.  
 \
 All Thruk features should work because all HTML tags, id's, classes are untouched.  
-I am not an expert on Bootstrap and jQuery so **ALL help and feedback is welcome**. Please dot not hesitate to contact me...  
-Go ahead and give it try.  
+I am not an expert on Bootstrap nor jQuery so **ALL help and feedback is welcome**.  
+Please dot not hesitate to contact me... Go ahead and give it a try.  
 ### Install/enable Asam theme:
-First cd to your themes dir eg. `thruk/themes/themes-available`
+First cd to your themes dir ie. `thruk/themes/themes-available`
 ```
 wget github.... 
 unzip Asam.zip  (This wil create dir Asam)
