@@ -36,7 +36,7 @@ Replace: [% ... ssi_footer; ... %] with:
 <script src='[% url_prefix %]themes/[% theme %]/js/bootstrap.bundle.min.js' type="text/javascript" defer="defer"></script>
 <script src='[% url_prefix %]themes/[% theme %]/js/common-footer.js' type="text/javascript" defer="defer"></script>
 ```
-- Edit Asam/templates/_header.tt and add class _fade_ to body tag. This will minimize screen flickering while page is being loaded:
+- Edit Asam/templates/_header.tt and add class _fade_ to body tag. This will minimize screen flickering while page is loading:
 ```
  <body style=.... class=fade ....
 ```

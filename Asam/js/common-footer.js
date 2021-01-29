@@ -84,7 +84,7 @@ var addButton=function(_sel='',_btnName='',_Seq=_seq,_type='dropdown'){  //requi
 
   }else if(_type=='link'){
 //console.log($(_sel).prop('outerHTML'));
- 
+
     $(_sel).addClass('btn btn-sm btn-secondary').attr('role','button').text(_btnName);
     _type="<div>&nbsp;"+$(_sel).prop('outerHTML')+"</div>";
 
@@ -114,7 +114,7 @@ var addButton=function(_sel='',_btnName='',_Seq=_seq,_type='dropdown'){  //requi
 */
 
 /*
-  if(!$('#btngrp'+_Seq).length){ 
+  if(!$('#btngrp'+_Seq).length){
     addTopRowCardBody(_Seq);
     $('#btngrp'+_Seq).append(_type);
   }else{
@@ -179,7 +179,7 @@ var filterButton=function (_pane='dfl_',_filt='#dfl_filter_button'){  //Filter l
   }else{
     _b=_filterPane;
   }
-  addButton(_b,'Filter'); 
+  addButton(_b,'Filter');
 
   // Filter icon button
              //thruk js FORCES icon to be visible, suppress with opacity
@@ -208,7 +208,7 @@ var utilsButton=function(_sel='td > a > button.thruk_btn.secondary',_Seq=_seq){
 }
 
 var mypager=function(){
-  //Pager at Top and Bottom (for Bottom Footer needs to be on) 
+  //Pager at Top and Bottom (for Bottom Footer needs to be on)
   if($('.pager_direct_link_current').length){
     if(!$('#btngrp'+_seq).length){addTopRowCardBody()};
     if(!$('#mypagerBottom'+_seq).length){insertCardFoot();} //create if card footer not exist
@@ -241,13 +241,13 @@ $('.thruk_btn').addClass('small').removeClass('big');
 
 // ---- MENU Side
 $('.nav_small_logo').css({'width':'80%','position':'unset'}).removeAttr('width height'); //.removeAttr('height');
-$('.navbar').css({'padding':'unset','background-color':'#d9d9d9'}); 
+$('.navbar').css({'padding':'unset','background-color':'#d9d9d9'});
 $('.navsection').addClass('card').removeClass('navsection').css('width','100%');
 $('.navsectiontitle').addClass('card-header bg-primary').css({'padding':'unset','background':'unset','color':'white','font-size':'14px'});
 $('div.navsectionlinks').addClass('card-body').css({'padding':'unset','text-align':'left'});
 
 //[1001]Current Status>Hosts
-if(referer.match(/status\.cgi.+style=hostdetail/)){ 
+if(referer.match(/status\.cgi.+style=hostdetail/)){
   pageID('[1001]');
   // ---- Wrap top_pane with BS Card
   //insertCard('table.top_nav ~ *','Hello','',1);
@@ -255,6 +255,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
 
   var _table=['#hoststatusTable',$('.statusTitle').hide().text(),
     $('div.itemTotalsTitle').hide().text(),'dfl_','td > div.hint'];
+  if($('.hoststatusTable').length){_table[0]='.hoststatusTable';}  //following changed as of v2.40
 
   //Format:  insertCard('#hoststatusTable',_title,_foot,_wrapAll);
   insertCard(_table[0],_table[1],_table[2]);
@@ -262,7 +263,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   $('#'+_table[3]+'_btn_columns_hover').prependTo("#card-body"+_seq);
   quickViewButton();
   filterButton(_table[3],_table[4]);
-  utilsButton(); 
+  utilsButton();
   mypager();
   var _dd=$('td > div.hint:contains(with leftclick to send)'); //.hide();
   $('#myhint'+_seq).text(_dd.text());
@@ -275,18 +276,19 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
 
   var _table=['#statusTable',$('.statusTitle').hide().text(),
     $('div.itemTotalsTitle').hide().text(),'dfl_','td > div.hint'];
+  if($('.statusTable').length){_table[0]='.statusTable';} //following changed as of v2.40
 
   insertCard(_table[0],_table[1],_table[2]);
   $('#'+_table[3]+'_btn_columns_hover').prependTo("#card-body"+_seq);
   quickViewButton();
   filterButton(_table[3],_table[4]);
-  utilsButton();  
+  utilsButton();
   mypager();
   var _dd=$('td > div.hint:contains(with leftclick to send)'); //.hide();
   $('#myhint'+_seq).text(_dd.text());
 
 //[1003]Current Status->Problems
-}else if(referer.match(/status\.cgi.+style=combined/)){ 
+}else if(referer.match(/status\.cgi.+style=combined/)){
   pageID('[1003]');
   insertCard('table.top_nav ~ *',$('.statusTitle').hide().text(),'',1); //add Master card frame
 
@@ -298,12 +300,16 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
      $('div.itemTotalsTitle:contains("Matching Service")').hide().text(),
      'svc_','form > div.hint']
   ];
+  //following changed as of v2.40
+  if($('.hoststatusTable').length){_table[0][0]='.hoststatusTable';}
+  if($('.statusTable').length){_table[1][0]='.statusTable';}
+
 
   $.each(_table,function(i){
     //Format:  insertCard('#hoststatusTable',_title,_total);
     insertCard(_table[i][0],_table[i][1],_table[i][2]);
     //steeksleutel icon if hover over status tableheader
-    $('#'+_table[i][3]+'_btn_columns_hover').prependTo("#card-body"+_seq); 
+    $('#'+_table[i][3]+'_btn_columns_hover').prependTo("#card-body"+_seq);
     //Exception "problem page", section Services, has 'form' as parent:
     filterButton(_table[i][3],_table[i][4]);
     $('#card-header'+_seq).addClass('bg-light text-secondary').removeClass('bg-primary');
@@ -315,7 +321,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   $('#dfl_filterForm').attr('style', 'position: unset !important');  //tabel width
 
 //[1004]Current Status->Host/Service Groups
-}else if(referer.match(/status\.cgi.+style=overview/)){ 
+}else if(referer.match(/status\.cgi.+style=overview/)){
   pageID('[1004]');
   insertCard('.infoboxrow','Global');
   var _table=['body>div>table',$('.statusTitle').hide().text(),'','dfl_','td > div.hint'];
@@ -328,18 +334,29 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   mypager();
 
   $('#card-body'+_seq+' table').addClass('table table-borderless');
+  $('table.filter').addClass('table-sm');  //v2.40
+
   var _aa=$('#card-body'+_seq+'>table>tbody>tr>td'); //>div>table');
   _aa.each(function(i){
-    var _wrap=$(this).children().children()[2]; //wrap the tables
-    rmType3($(this).children());
+    var _wrap=$(this).children().children('table'); //.last(); //last is tables, prev may be form (wrench)
+    var _title=$(this).children().children('a').hide();
+    rmType3($(this).children()); //remove content characters
 
-    var _title=$(this).children().children().hide()[1];
-    _title=$(_title).text(' [Commands]');
-    _title=$(this).children().prop('outerHTML');
+    //var _title1=_title[0];
+    var _title2=_title[1];
+    //if($(_title1).text()==$(_title2).text()){
+      _title=$(_title2).text(' [Commands]');
+    //}else{
+    //  _title=$(_title2).text(' ['+$(_title2).text()+']');
+    // }
+     _title=$(this).children().prop('outerHTML');
+
     insertCard(_wrap,_title);
+    $('div.status>form').prependTo('#card-body'+_seq);
     $('#card-header'+_seq).addClass('bg-light').removeClass('bg-primary');
     $('#card'+_seq+' *').show();
   });
+
 
 //[1005]HG,SG Summary
 }else if(referer.match(/status\.cgi.+style=summary/)){
@@ -363,7 +380,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   });
 
 
-//[1006]HG,SG>Group Commands 
+//[1006]HG,SG>Group Commands
 }else if(referer.match(/extinfo\.cgi.+type=(8|5)/)){
   pageID('[1006]'); //]HG Summary
   insertCard('.infoboxrow','Global');
@@ -379,8 +396,77 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   pageID('[1007]');
   insertCard('.infoboxrow','Global');
 
+/* v2.40 looks like:
+td
+  div.status
+  form (1sty td only)
+  table
+td
+*/
+/* v2.34 looks like:
+div
+  div.status
+  table
+div
+*/
+
+  var _pp;
+  if($('td>div.status').length){  // v2.40
+    insertCard('body>div>table',$('.statusTitle').hide().text());
+    $('#card-body2>table').addClass('table table-borderless');
+    $('table.filter').addClass('table-sm');
+    _pp=$('div.status').parent();
+  }else{
+    insertCard($('div>div.status').parent(),$('.statusTitle').hide().text());
+    _pp='div.status';
+  }
+
+  quickViewButton();
+  filterButton(); //'dfl_','td > div.hint');
+  utilsButton();
+  mypager();
+
+  if($('td>div.status').length){   // v2.40
+  $(_pp).each(function(i){
+    var _bb=$(this).children('div').hide();
+    rmType3($(_bb));
+    _bb=$(_bb).children().last();  //get last <a>
+    $(_bb).text(' [Command]');
+
+    insertCard($(this).children('table'),$(this).children('div').html());
+    $('#card-body'+_seq+'>table').addClass('table table-borderless');
+    $('#card-header'+_seq).addClass('bg-light').removeClass('bg-primary');
+    $('#card'+_seq+' *').show();
+
+    if($(this).children('form').length){
+      $(this).children('form').prependTo('#card-body'+_seq);
+    }
+  });
+  }else{
+  $(_pp).each(function(i){
+    var _bb=$(this).hide();
+    rmType3($(_bb));
+    _bb=$(_bb).children().last();  //get last <a>
+    $(_bb).text(' [Command]');
+
+    $(this).before('<p></p>');
+    insertCard($(this).next('table'),$(this).html());
+    $('#card-body'+_seq+'>table').addClass('table table-borderless');
+    $('#card-header'+_seq).addClass('bg-light').removeClass('bg-primary');
+    $('#card'+_seq+' *').show();
+
+    if($(this).children('form').length){
+      $(this).children('form').prependTo('#card-body'+_seq);
+    }
+  });
+  }
+
+
+/*
   var _as='hello'+_seq;  //lets create our own id
-  $('body>div>div.status').parent().attr('id',_as);
+  //$('body>div div.status').parent().attr('id',_as);
+  $('div.status').parent().attr('id',_as);
+
   insertCard('#'+_as,$('.statusTitle').hide().text());
   quickViewButton();
   filterButton(); //'dfl_','td > div.hint');
@@ -396,12 +482,16 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
     $(_bb).text('[Command]');
 
     $(this).before('<p></p>');
-    insertCard(_tab[i],$(this).html()); //get table[i] 
+    insertCard(_tab[i],$(this).html()); //get table[i]
 
     $('#card-body'+_seq+'>table').addClass('table table-borderless');
     $('#card-header'+_seq).addClass('bg-light').removeClass('bg-primary');
     $('#card'+_seq+' *').show();
   });
+*/
+
+
+
 
 //Network outages
 }else if(referer.match(/outages\.cgi/)){
@@ -464,12 +554,12 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
       }else{
         _qq[i][0]=$(this).text();
       }
-    }else if($(this).hasClass('dataTitle')){  
+    }else if($(this).hasClass('dataTitle')){
       if(i>1 && _qq[i-1][0]==_qq[i-2][0]){  //if prev col val is same as the one before that
         _qq[i][0]=_qq[i-1][0];              //set col val same as prev col val
         _qq[i][1]=_qq[i-1][1]+' '+$(this).html(); //concat this val with prev val
         _qq[i-1][1]='';                     // empty [1]val we will select [0] and [1] with val only
-      }else{ 
+      }else{
         _qq[i][0]=_qq[i-1][0];
         _qq[i][1]=$(this).html();
       }
@@ -530,7 +620,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
 //    $('div.report_permalink>a').text(_cd);    //set <a> text with <div> text
   }
   insertCard('.infoboxrow','Availability',$('div.report_permalink'));  //foot is null for step 1,2
-  
+
   //mv data into .databoxrow
   $('table.infoboxrow td:nth-child(2)').append($('div.dateSelectTitle,.reportSelectTitle')).append($('body>div>form'));
   if($('input[name=email]').length){  //Step 3
@@ -573,13 +663,14 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   $('table.optBox').addClass('table infoBox table-sm table-borderless');
   $('td.filter>table').first().addClass('table');
 
-  //console.log($('form#date_form').next());
   insertCard($('form#date_form').next().next(),$('table.infoboxrow div.dataTitle').hide().text(),$('div.itemTotalsTitle').hide().text());
   //quickViewButton();  //somehow js event handling does not work for btn
   //utilsButton();
   mypager();
 
+  $('.dateTimeBreak,.logEntries').appendTo($('#card-body'+_seq));
 
+//History Summary
 }else if(referer.match(/summary\.cgi/)){
   pageID('[1015]');
 
@@ -640,12 +731,12 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
     insertCard('#statusTable',$('.dataTitle').hide().text());
 
     addTopRowCardBody();
-    $('#btngrp'+_seq).html($('div#qwe>table td').first()); 
+    $('#btngrp'+_seq).html($('div#qwe>table td').first());
     $('#mypagerTop'+_seq).html($('div#qwe>table td').first());
     $('#myTextTop'+_seq).html($('div#qwe>table td').first());
     $('#statusTable').addClass('table').css('min-width','unset');
     $('#statusTable td').removeClass('mightOverflow50');
-    
+
   }else if($('table.data.reports').length){
     var _pl='table.data.reports';
     insertCard(_pl,$('.dataTitle').hide().text());
@@ -726,11 +817,13 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
 }else if(referer.match(/extinfo.cgi\?type=0/)){
   pageID('[1022]');
   insertCard('.infoboxrow','Global');
+  $('#card'+_seq).after('<p> </p>');
   insertCard('table#procInfoTable','Process Information');
   utilsButton('div > a > button.thruk_btn.secondary');
-  $('#card'+_seq+' *').removeAttr('nowrap border cellspacing cellpadding align valign width'); //width removes
   $('#card'+_seq+' table').addClass('table'); //.removeClass('stateInfoTable1');
   $('#card'+_seq+' *').removeClass('stateInfoTable1');
+  $('#myTextTop'+_seq).html($('#table_search_input').parent());
+  $('#card'+_seq+' *').removeAttr('nowrap border cellspacing cellpadding align valign width'); //width removes
   $('table.command td').addClass('table-sm align-middle');
   $('table.procInfo td').css('white-space','normal');
 
@@ -750,7 +843,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   pageID('[1024]');
   insertCard('.infoboxrow','Global');
 
-  if($('table#statusTable').length){  
+  if($('table#statusTable').length){
     insertCard('table#statusTable',$('.statusTitle,.dataTitle').hide().text());
     addButton($('td>a>button.thruk_button_add').parent().hide(),'&nbsp;New&nbsp;');
     var _jj=$('#btngrp'+_seq+' a>button').text();   //prettify button
@@ -795,7 +888,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
     $(this).css('width','100%');
     var _kw=$('th.conftoolheader')[i];
     insertCard(this,$(_kw).hide().text());
-    $(this).addClass('table'); //.css('width','unset'); 
+    $(this).addClass('table'); //.css('width','unset');
   });
 
 
@@ -845,7 +938,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   insertCard($(_kw)[0],$('#card'+_seq+' .dataTitle').hide().text());
   //$('table.conftoolobj').addClass('table').css('width','100%');
 
-  insertCard('table.confdetails',''); 
+  insertCard('table.confdetails','');
   addTopRowCardBody();     //add top row to BOTH cards
   $('#btngrp'+_seq).append($('#card'+_seq+' th.data>a').prop('outerHTML'));
   $('#btngrp'+_seq+'>a').attr('role','button').addClass('btn btn-sm btn-secondary text-white');
@@ -904,7 +997,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   $('.conftoolusers').each(function(i){
     //$(this).css('width','100%');
     var _kw=$('th.conftoolheader')[i]||$('td.dataUserVar')[i];
-    if($(_kw).text().match(/Roles/)){_kw=$('td.dataUserVar')[i-1];} 
+    if($(_kw).text().match(/Roles/)){_kw=$('td.dataUserVar')[i-1];}
     insertCard(this,$(_kw).hide().text());
     $('#card'+_seq).after('<p> </p>');
     //$(this).addClass('table'); //.css('width','unset');
@@ -946,7 +1039,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
     utilsButton();
     $('#myTextTop'+_seq).html($('#filter').parent().parent());
     $('#myTextTop'+_seq+'>td').addClass('text-right').removeAttr('valign','align');
-    $('#mypagerTop'+_seq).html($('a.bp_button').prop('outerHTML'));    
+    $('#mypagerTop'+_seq).html($('a.bp_button').prop('outerHTML'));
     $('td>div>a.bp_button').hide();
   }
 
@@ -970,7 +1063,4 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
     }
   }
 }
-
-
-
 
