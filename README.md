@@ -9,15 +9,18 @@ Please dot not hesitate to contact me... Go ahead and give it a try.
 ### Install/enable Asam theme:
 First cd to your themes dir ie. `thruk/themes/themes-available`
 ```
-download and unzip from here. 
-Save the downloaded Asam dir to thruk/themes/themes-available/
-Thruk2/* to Asam (dirs are added and some dirs already exist)
+download zip file here and unzip in thruk/themes/themes-available/
+You only need to save the Asam dir from the unzipped file ie. thruk/themes/themes-available/Asam
+
+We wil be using the Thruk2 theme as template: 
+copy all files and dirs in Thruk2 to Asam (some dirs already exist)
+
 mv Asam/stylesheets/Thruk2.css Asam/stylesheets/Asam.css
-cp ../../templates/side.tt Asam/templates
-cp ../../templates/_footer.tt Asam/templates
-cp ../../templates/_header.tt Asam/templates
+cp thurk/templates/side.tt Asam/templates
+cp thruk/templates/_footer.tt Asam/templates
+cp thruk/templates/_header.tt Asam/templates
 ```
-Now all the files are in place. Next, edit the 3 template files:
+Now all the files are in place. Next, edit the 3 template (*.tt) files:
 
 - Edit Asam/templates/side.tt and insert script bootstrap and common.js near the bottom:  
 ```
@@ -44,6 +47,7 @@ Replace: [% ... ssi_footer; ... %] with:
 - Enable the new Asam theme, create a link to thruk/themes/themes-available/Asam:  
 	* go to dir **etc**/thruk/themes/themes-enabled  
 	* create link eg. `ln -s ../../../share/thruk/themes/themes-available/Asam Asam`  
+	* you may change Thruk's theme to Asam.
 
 That's it your done :-)  
 Restart Thruk to make it aware of the new theme and files. Once logged on, change your theme to Asam.  
