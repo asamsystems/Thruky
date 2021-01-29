@@ -9,9 +9,9 @@ Please dot not hesitate to contact me... Go ahead and give it a try.
 ### Install/enable Asam theme:
 First cd to your themes dir ie. `thruk/themes/themes-available`
 ```
-wget github.... 
-unzip Asam.zip  (This wil create dir Asam)
-cp -r Thruk2 Asam  (some dirs already exist)
+download and unzip from here. 
+Save the downloaded Asam dir to thruk/themes/themes-available/
+Thruk2/* to Asam (dirs are added and some dirs already exist)
 mv Asam/stylesheets/Thruk2.css Asam/stylesheets/Asam.css
 cp ../../templates/side.tt Asam/templates
 cp ../../templates/_footer.tt Asam/templates
