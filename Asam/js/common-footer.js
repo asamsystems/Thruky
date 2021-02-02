@@ -1066,6 +1066,7 @@ div
     insertCard('.infoboxrow',$('div.infoBoxTitle').text()||'Global');
     $('#card'+_seq).after('<p> </p>');
 
+/*
     if($('.statusTitle,.dataTitle,.confTable').length){
        insertCard('table#statusTable,table.confTable',$('.statusTitle,.dataTitle').hide().text(),$('div.itemTotalsTitle').hide().text());
        if($('td.linkBox').length){quickViewButton();}
@@ -1073,6 +1074,7 @@ div
        if($('td > a > button.thruk_btn.secondary').length){utilsButton();}
        //mypager();
     }
+*/
   }
 }
 
