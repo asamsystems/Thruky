@@ -22,8 +22,13 @@ cp thruk/templates/_header.tt Asam/templates
 ```
 Now all the files are in place. Next, edit the 3 template (*.tt) files:
 
-- Edit Asam/templates/side.tt and insert script bootstrap and common.js near the bottom:  
+- Edit Asam/templates/side.tt and insert script bootstrap and common.js:  
 ```
+add class _fade_ to body tag. This will minimize screen flickering while page is loading:
+<body class=fade ....
+
+edit near bottom:
+
 [% IF use_frames %]
 <script src='[% url_prefix %]themes/[% theme %]/js/bootstrap.bundle.min.js' type="text/javascript" defer="defer"></script>
 <script src='[% url_prefix %]themes/[% theme %]/js/common-footer.js' type="text/javascript" defer="defer"></script>
