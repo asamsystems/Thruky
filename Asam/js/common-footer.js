@@ -706,17 +706,20 @@ div
   //mypager();
 
 
+//Logs, Eventlog, 
 }else if(referer.match(/showlog\.cgi/)){
   pageID('[1017]');
-  insertCard('.infoboxrow','Event Log');
+  insertCard('.infoboxrow',$('.infoBoxTitle').text());
   $('table.optBox').addClass('table infoBox table-sm table-borderless');
   $('td.filter>table').first().addClass('table');
 
   var _ke=$('div.dateTimeBreak,div.logEntries').wrapAll('<div id=qwe></div>');
-  insertCard(_ke,'Log',$('div.itemTotalsTitle').hide().text(),1);
+  var _ln=$('.statusTitle').hide().text();
+  if(!_ke.length){_ke='.itemTotalsTitle';}
+  if(!_ln.length){_ln='Log';}
+  $('hr').remove();
 
-//  insertCard($('form').next().next(),'Log',$('div.itemTotalsTitle').hide().text());
-  //$('table.notifications').addClass('table');
+  insertCard(_ke,_ln,$('div.itemTotalsTitle').hide().text(),1);
   utilsButton();
   mypager();
 
@@ -1046,6 +1049,15 @@ div
   $('#bp_menu a').css({'width':'unset','height':'unset'});
   $('a[class$=button]').css('height','unset');
 
+//Host/Service outages
+}else if(referer.match(/avail\.cgi\?(outages=|host=)/)){
+  pageID('[1033]');
+  insertCard('.infoboxrow',$('.infoBoxTitle').text());
+  insertCard('table.status',$('.dataTitle').hide().text());
+  $('table.status').addClass('table');
+  $('table.optBox').addClass('table infoBox table-sm table-borderless');
+  quickViewButton();
+  mypager();
 
 //Catch All
 }else{
