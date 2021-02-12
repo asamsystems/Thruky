@@ -1,5 +1,5 @@
 ## Theme Asam for Thruk Monitoring
-Bootstrap 4 wrapped theme for Thruk Monitoring (http://www.thruk.org) version 3.30 and up.  
+Bootstrap 4 wrapped theme for Thruk Monitoring (http://www.thruk.org) version 3.34 and up.  
 The idea behind this is to overlay an existing thruk theme (ie. Thruk2) with Bootstrap 4 and manipulate lay-out with jQuery.  
 None but 3 existing thruk files needed customization for this to work.  
 \
@@ -16,7 +16,7 @@ We wil be using the Thruk2 theme as template:
 copy all files and dirs in Thruk2 to Asam (some dirs already exist)
 
 mv Asam/stylesheets/Thruk2.css Asam/stylesheets/Asam.css
-cp thurk/templates/side.tt Asam/templates
+cp thruk/templates/side.tt Asam/templates
 cp thruk/templates/_footer.tt Asam/templates
 cp thruk/templates/_header.tt Asam/templates
 ```
