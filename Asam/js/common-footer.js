@@ -269,7 +269,7 @@ if(referer.match(/status\.cgi.+style=hostdetail/)){
   $('#myhint'+_seq).text(_dd.text());
 
 //[1002]Current Status>Service,SG,HG
-}else if(referer.match(/status\.cgi.+(style=detail|host=all|host=(?!.+&))/)){
+}else if(referer.match(/status\.cgi.+(style=detail|host=all|host=(?!.+&)|s0_type=search)/)){
   pageID('[1002]');
   //notice host=(?!.+&) above: click "View .. detail.." icon has no &style=detail
   insertCard('.infoboxrow','Global');
@@ -992,7 +992,7 @@ div
 
 
 //Config Users
-}else if(referer.match(/conf\.cgi\?sub=users/)){
+}else if(referer.match(/conf\.cgi.+sub=users/)){
   pageID('[1032]');
   insertCard('.infoboxrow',$('div.dataTitle').hide().text()||$('div.infoBoxTitle').text());
   $('#card'+_seq).after('<p> </p>');
@@ -1032,7 +1032,7 @@ div
 
 //Business Process
 }else if(referer.match(/bp\.cgi/)){
-  pageID('[1032]');
+  pageID('[1033]');
   insertCard('.infoboxrow',$('div.infoBoxTitle').text());
   $('#card'+_seq).after('<p> </p>');
   $('.infoboxrow br').remove();  //clean up
@@ -1051,7 +1051,7 @@ div
 
 //Host/Service outages
 }else if(referer.match(/avail\.cgi\?(outages=|host=)/)){
-  pageID('[1033]');
+  pageID('[1034]');
   insertCard('.infoboxrow',$('.infoBoxTitle').text());
   insertCard('table.status',$('.dataTitle').hide().text());
   $('table.status').addClass('table');
