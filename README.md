@@ -1,6 +1,6 @@
 ## Theme Asam for Thruk Monitoring
 Bootstrap 4 wrapped theme for Thruk Monitoring (http://www.thruk.org) version 3.34 and up.  
-The idea behind this is to overlay an existing thruk theme (ie. Thruk2) with Bootstrap 4 and manipulate lay-out with jQuery.  
+The idea behind this is to overlay an existing thruk theme (ie. Thruk2) with Bootstrap 4 and manipulate lay-out using jQuery.  
 None but 3 existing thruk files needed customization for this to work.  
 \
 All Thruk features should work because all HTML tags, id's, classes are untouched.  
@@ -13,7 +13,7 @@ download zip file here and unzip in thruk/themes/themes-available/
 You only need to save the Asam dir from the unzipped file ie. thruk/themes/themes-available/Asam
 
 We wil be using the Thruk2 theme as template: 
-copy all files and dirs in Thruk2 to Asam (some dirs already exist)
+Copy all files and dirs in Thruk2 to Asam (some dirs already exist)
 
 mv Asam/stylesheets/Thruk2.css Asam/stylesheets/Asam.css
 cp thruk/templates/side.tt Asam/templates
@@ -46,11 +46,11 @@ Replace: [% ... ssi_footer; ... %] with:
 ```
 - Edit Asam/templates/_header.tt and add class _fade_ to body tag. This will minimize screen flickering while page is loading:
 ```
- <body style=.... class=fade ....
+ <body style=.... class="fade [% page....
 ```
 
 - Enable the new Asam theme, create a link to thruk/themes/themes-available/Asam:  
-	* go to dir **etc**/thruk/themes/themes-enabled  
+	* go to dir **etc**/thruk/themes-enabled  
 	* create link eg. `ln -s ../../../share/thruk/themes/themes-available/Asam Asam`  
 	* you may change Thruk's theme to Asam.
 
