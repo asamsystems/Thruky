@@ -16,16 +16,16 @@ We wil be using the Thruk2 theme as template:
 Copy all files and dirs in Thruk2 to Asam (some dirs already exist)
 
 mv Asam/stylesheets/Thruk2.css Asam/stylesheets/Asam.css
-cp thruk/templates/side.tt Asam/templates
-cp thruk/templates/_footer.tt Asam/templates
-cp thruk/templates/_header.tt Asam/templates
+cp thruk/templates/side.tt thruk/themes/themes-available/Asam/templates
+cp thruk/templates/_footer.tt thruk/themes/themes-available/Asam/templates
+cp thruk/templates/_header.tt thruk/themes/themes-available/Asam/templates
 ```
 Now all the files are in place. Next, edit the 3 template (*.tt) files:
 
 - Edit Asam/templates/side.tt and insert script bootstrap and common.js:  
 ```
-add class _fade_ to body tag. This will minimize screen flickering while page is loading:
-<body class=fade ....
+add class "fade" to body tag. This will minimize screen flickering while page is loading:
+<body class='fade navbar'
 
 edit near bottom:
 
