@@ -36,7 +36,7 @@ edit near bottom:
 </html>
 [% END %]
 ```
-- Edit Asam/templates/_footer.tt and add following near the bottom:  
+- Edit Asam/templates/_footer.tt and replace and add following near the bottom:  
 > Note: eventhough etc/thruk/ssi/common-footer.ssi is available, unfortunately not all \*.tt include common-footer.ssi (eg. config\*,  history.tt, main.tt, side.tt, etc).  
 Workaround is to add our footer scripts to _footer.tt
 ```
