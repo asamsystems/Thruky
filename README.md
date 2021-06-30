@@ -22,7 +22,7 @@ cp thruk/templates/_header.tt thruk/themes/themes-available/Asam/templates
 ```
 Now all the files are in place. Next, edit the 3 template (*.tt) files:
 
-- Edit Asam/templates/side.tt and insert script bootstrap and common.js:  
+- Edit Asam/templates/side.tt and insert script bootstrap and common-footer.js:  
 ```
 add class "fade" to body tag. This will minimize screen flickering while page is loading:
 <body class='fade navbar'
