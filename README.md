@@ -8,13 +8,11 @@ I am not an expert on Bootstrap nor jQuery so **ALL help and feedback is welcome
 Please dot not hesitate to contact me... Go ahead and give it a try.  
 ### Install/enable Asam theme:
 First cd to your themes dir ie. `thruk/themes/themes-available`
-```
-download zip file here and unzip in thruk/themes/themes-available/
-You only need to save the Asam dir from the unzipped file ie. thruk/themes/themes-available/Asam
+Download Asam folder here. You only need to save the Asam dir from the unzipped file ie. thruk/themes/themes-available/Asam
 
-We wil be using the Thruk2 theme as template: 
+We will be using the Thruk2 theme as template: 
 Copy all files and dirs in Thruk2 to Asam (some dirs already exist)
-
+```
 mv Asam/stylesheets/Thruk2.css Asam/stylesheets/Asam.css
 cp thruk/templates/side.tt thruk/themes/themes-available/Asam/templates
 cp thruk/templates/_footer.tt thruk/themes/themes-available/Asam/templates
