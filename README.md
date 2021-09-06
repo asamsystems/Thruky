@@ -7,7 +7,7 @@ All Thruk features should work because all HTML tags, id's, classes are untouche
 I am not an expert on Bootstrap nor jQuery so **ALL help and feedback is welcome**.  
 Please dot not hesitate to contact me... Go ahead and give it a try.  
 ### Install/enable Asam theme:
-First cd to your themes dir ie. `thruk/themes/themes-available`
+First cd to your themes dir ie. `thruk/themes/themes-available`.  
 Download Asam folder here. You only need to save the Asam dir from the unzipped file ie. thruk/themes/themes-available/Asam
 
 We will be using the Thruk2 theme as template: 
